@@ -121,10 +121,10 @@ public class MainWindow {
 				fd[0].setHeight(16);			
 				label.setFont(new Font(label.getDisplay(), fd[0]));
 */
-				FontDescriptor fontDescriptor = FontDescriptor.createFrom(label.getFont()).setHeight(14);
+				FontDescriptor fontDescriptor = FontDescriptor.createFrom(label.getFont()).setHeight(12);
 				Font font16 = fontDescriptor.createFont(label.getDisplay());
 				label.setFont(font16);
-				label.setText("Computer Aided\n Feature Extraction");
+				label.setText("Computer Aided Feature Extraction");
 					
 				dialog.open();
 				
