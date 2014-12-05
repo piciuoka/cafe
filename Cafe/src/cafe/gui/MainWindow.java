@@ -88,7 +88,12 @@ public class MainWindow {
 		
 		MenuItem mntmExit = new MenuItem(menu_1, SWT.NONE);
 		mntmExit.setText("E&xit");
-		
+		mntmExit.addSelectionListener(new SelectionAdapter(){
+			@Override
+			public void widgetSelected(SelectionEvent e){
+				System.exit(0);
+			}
+		});
 		MenuItem mntmAbout = new MenuItem(menu, SWT.NONE);
 		mntmAbout.setText("&About");
 		mntmAbout.addSelectionListener(new SelectionAdapter() {
@@ -116,10 +121,10 @@ public class MainWindow {
 				fd[0].setHeight(16);			
 				label.setFont(new Font(label.getDisplay(), fd[0]));
 */
-				FontDescriptor fontDescriptor = FontDescriptor.createFrom(label.getFont()).setHeight(16);
+				FontDescriptor fontDescriptor = FontDescriptor.createFrom(label.getFont()).setHeight(14);
 				Font font16 = fontDescriptor.createFont(label.getDisplay());
 				label.setFont(font16);
-				label.setText("Computer Aided Feature Extraction");
+				label.setText("Computer Aided\n Feature Extraction");
 					
 				dialog.open();
 				
