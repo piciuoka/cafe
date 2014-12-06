@@ -3,7 +3,9 @@ package cafe.gui;
 import org.eclipse.jface.resource.FontDescriptor;
 import org.eclipse.swt.widgets.Canvas;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
@@ -14,7 +16,6 @@ import org.eclipse.swt.events.PaintListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Font;
-import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 
@@ -24,6 +25,7 @@ public class MainWindow {
 
 	protected Shell shell;
 	private Label drawingLabel;
+	private DrawWaveform dw;
 	/**
 	 * Open the window.
 	 */
@@ -53,7 +55,19 @@ public class MainWindow {
 		shell.setLocation(400, 200);
 		shell.setSize(800, 600);
 		shell.setText("CAFE Application");
-		
+		shell.addListener(SWT.Resize, new Listener(){
+			public void handleEvent (Event e) {
+				if(dw != null){
+					int width=shell.getSize().x;
+					int height=shell.getSize().y;
+					System.out.println(width);
+					drawingLabel.setSize(width,height);
+					dw.redraw(width, height);
+					drawingLabel.setLocation(0, 0);
+					drawingLabel.setImage(dw.getImage());
+				}
+			}
+		});
 		Menu menu = new Menu(shell, SWT.BAR);
 		shell.setMenuBar(menu);
 		
@@ -81,8 +95,8 @@ public class MainWindow {
 		    		int height = shell.getSize().y;
 		    		drawingLabel.setSize(width,height);
 		    		drawingLabel.setLocation(0, 0);
-		    		DrawWaveform dw = new DrawWaveform(width,height);
-		    		dw.draw(drawingLabel.getDisplay(),fileName);
+		    		 dw = new DrawWaveform(width,height,drawingLabel.getDisplay(),fileName);
+		    		dw.draw();
 		    		drawingLabel.setImage(dw.getImage());		    		
 		        }
 			}
@@ -144,7 +158,10 @@ public class MainWindow {
 	            e.gc.setBackground(Display.getDefault().getSystemColor(SWT.COLOR_CYAN));
 	            e.gc.fillOval(0,0,clientArea.width,clientArea.height); 
 	        }
+	        
 	    });
 
+
+	    	
 	}
 }

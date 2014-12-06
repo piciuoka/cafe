@@ -12,14 +12,16 @@ public class DrawWaveform {
 	private Image image;
 	private int width;
 	private int height;
-	
-	public DrawWaveform(int w, int h) {
+	private Device device;
+	private String fileName;
+	public DrawWaveform(int w, int h,Device dv,String fn) {
 		width = w;
 		height = h;
+		device=dv;
+		fileName=fn;
 	}
 		
-	public void draw(Device device, String fileName) {
-
+	public void draw() {
 		image = new Image(device,width,height);
 		GC gc = new GC(image);
 		Rectangle bounds = image.getBounds();
@@ -45,10 +47,14 @@ public class DrawWaveform {
 
 		} 
 		catch (Exception e) {
-			
+			e.printStackTrace();
 		}
 	}
-	
+	public void redraw(int w,int h){
+		width=w;
+		height=h;
+		draw();
+	}
 	public Image getImage() {
 		return image;
 	}
