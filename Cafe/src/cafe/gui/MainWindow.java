@@ -23,10 +23,15 @@ import cafe.audio.DrawWaveform;
 public class MainWindow {
 
 	protected Shell shell;
-
+	private Label drawingLabel;
 	/**
 	 * Open the window.
 	 */
+	public MainWindow(){
+		shell = new Shell();
+		drawingLabel=new Label(shell, SWT.NORMAL);
+		
+	}
 	public void open() {
 		Display display = Display.getDefault();
 		createContents();
@@ -44,8 +49,7 @@ public class MainWindow {
 	 * @wbp.parser.entryPoint
 	 */
 	protected void createContents() {
-		
-		shell = new Shell();
+	
 		shell.setLocation(400, 200);
 		shell.setSize(800, 600);
 		shell.setText("CAFE Application");
@@ -73,14 +77,13 @@ public class MainWindow {
 		        System.out.println(fileName);
 		        if (fileName != null) {
 
-		    		Label label = new Label(shell,SWT.NORMAL);
 		    		int width = shell.getSize().x;
 		    		int height = shell.getSize().y;
-		    		label.setSize(width,height);
-		    		label.setLocation(0, 0);
+		    		drawingLabel.setSize(width,height);
+		    		drawingLabel.setLocation(0, 0);
 		    		DrawWaveform dw = new DrawWaveform(width,height);
-		    		dw.draw(label.getDisplay(),fileName);
-		    		label.setImage(dw.getImage());		    		
+		    		dw.draw(drawingLabel.getDisplay(),fileName);
+		    		drawingLabel.setImage(dw.getImage());		    		
 		        }
 			}
 		});

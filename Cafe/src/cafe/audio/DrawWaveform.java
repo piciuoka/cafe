@@ -19,7 +19,7 @@ public class DrawWaveform {
 	}
 		
 	public void draw(Device device, String fileName) {
-		
+
 		image = new Image(device,width,height);
 		GC gc = new GC(image);
 		Rectangle bounds = image.getBounds();
