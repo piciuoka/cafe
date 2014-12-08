@@ -4,6 +4,7 @@ package cafe.audio;
  *  http://www.labbookpages.co.uk/audio/javaWavFiles.html
  */
 
+@SuppressWarnings("serial")
 public class WavFileException extends Exception
 {
 	public WavFileException()
