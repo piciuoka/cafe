@@ -229,6 +229,17 @@ public class MainWindow {
 					
 				dialog.open();				
 			}
-		});		
+		});
+		
+/*				
+		final Canvas canvas = new Canvas(shell,SWT.NONE);
+	    canvas.addPaintListener(new PaintListener() {
+	        public void paintControl(PaintEvent e) {
+	            Rectangle clientArea = canvas.getClientArea();
+	            e.gc.setBackground(Display.getDefault().getSystemColor(SWT.COLOR_CYAN));
+	            e.gc.fillOval(0,0,clientArea.width,clientArea.height); 
+	        }
+	    });
+*/
 	}
 }
