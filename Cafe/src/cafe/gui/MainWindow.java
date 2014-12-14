@@ -189,8 +189,8 @@ public class MainWindow {
 					cbf.transform();
 					System.out.println("Result: ");
 					
-					ResultWindow resultWindow = new ResultWindow();
-					resultWindow.open(cbf.getBasicFrequencyTable());
+					ChartResultWindow resultWindow = new ChartResultWindow("Chart");
+					resultWindow.open(cbf.getBasicFrequencyTable(),"Basic Frequency", "t", "f [Hz]" );
 					
 				} catch (Exception exc) {
 					System.err.println(exc);
