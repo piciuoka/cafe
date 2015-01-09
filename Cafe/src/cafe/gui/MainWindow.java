@@ -271,23 +271,23 @@ public class MainWindow {
 						e1.printStackTrace();
 					}
 					if(tempFile!=null){
+						class Recorder implements Runnable {
+
+						    public void run() {
+		            try {
 						AudioFileFormat.Type fileType = AudioFileFormat.Type.WAVE;
-						AudioFormat format =new AudioFormat(22050,16,1,true,true);
+						AudioFormat format =new AudioFormat(44100,16,1,true,true);
 						DataLine.Info info = new DataLine.Info(TargetDataLine.class, format);
 						if (!AudioSystem.isLineSupported(info)) {
 			                System.out.println("Line not supported");
 			                return;
 						}
-						try {
-							line = (TargetDataLine) AudioSystem.getLine(info);
-						class Recorder implements Runnable {
 
-							    public void run() {
-			            try {
-							line.open(format);
-						
+			            	line = (TargetDataLine) AudioSystem.getLine(info);
+						line.open(format);
 			            line.start();
 			            AudioInputStream ais = new AudioInputStream(line);
+			            ais.skip(90112); //skipping 1 sec trash = 88KB
 			            AudioSystem.write(ais, fileType, tempFile);
 			            } catch (LineUnavailableException | IOException e) {
 							// TODO Auto-generated catch block
@@ -296,11 +296,6 @@ public class MainWindow {
 							    }
 						};
 						(new Thread(new Recorder())).start();
-						
-						} catch (LineUnavailableException e1) {
-
-							e1.printStackTrace();
-						}
 					}
 				}
 			});
