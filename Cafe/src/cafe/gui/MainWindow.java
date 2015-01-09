@@ -1,8 +1,20 @@
 package cafe.gui;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+
+import javax.sound.sampled.AudioFileFormat;
+import javax.sound.sampled.AudioFormat;
+import javax.sound.sampled.AudioInputStream;
+import javax.sound.sampled.AudioSystem;
+import javax.sound.sampled.Clip;
+import javax.sound.sampled.DataLine;
+import javax.sound.sampled.LineUnavailableException;
+import javax.sound.sampled.TargetDataLine;
 
 import org.eclipse.jface.resource.FontDescriptor;
+import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Canvas;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
@@ -23,12 +35,14 @@ import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 
+import sun.audio.AudioPlayer;
+import sun.audio.AudioStream;
 import cafe.application.ComputeBasicFrequency;
 import cafe.audio.DrawWaveform;
 import cafe.audio.WavFile;
-
 public class MainWindow {
-
+	private TargetDataLine line;
+	File tempFile;
 	protected Shell shell;
 	protected Display display;
 	private Image image;
@@ -88,7 +102,6 @@ public class MainWindow {
 				if(dw != null){
 					int width=shell.getSize().x;
 					int height=shell.getSize().y-MENU_HEIGHT;
-					System.out.println(width);
 					drawingLabel.setSize(width,height);
 					dw.redraw(width, height);
 					drawingLabel.setLocation(0, 0);
@@ -200,7 +213,114 @@ public class MainWindow {
 		}
 		});
 		mntmCompute.setText("Compute ");
-		
+		MenuItem mntmMusic = new MenuItem(menu, SWT.CASCADE);
+		mntmMusic.setText("&Sound");
+		Menu menu_2 = new Menu(mntmMusic);
+		mntmMusic.setMenu(menu_2);
+		MenuItem mntmPlay = new MenuItem(menu_2, SWT.NONE);
+		mntmPlay.setText("&Play");
+		mntmPlay.addSelectionListener(new SelectionAdapter() {
+			public void widgetSelected(SelectionEvent e) {
+				try{
+				if(!fileName.isEmpty()){
+					Clip clip = AudioSystem.getClip();
+				clip.open(AudioSystem.getAudioInputStream(new File(fileName)));
+			    clip.start();
+				}
+				}catch(Exception e1){
+					System.err.println(e1);
+					e1.printStackTrace();
+				}
+			}
+		});
+		MenuItem mntmRecord = new MenuItem(menu_2, SWT.NONE);
+		mntmRecord.setText("&Record");
+		mntmRecord.addSelectionListener(new SelectionAdapter() {
+			public void widgetSelected(SelectionEvent e) {
+				Shell dialog = new Shell(shell, SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL);
+				dialog.setText("Recording");
+				dialog.setSize(440,170);
+		        Rectangle shellBounds = shell.getBounds();
+		        Point dialogSize = dialog.getSize();
+		        dialog.setLocation(
+				          shellBounds.x + (shellBounds.width - dialogSize.x) / 2,
+				          shellBounds.y + (shellBounds.height - dialogSize.y) / 2);
+			Button btnRecord=new Button(dialog, SWT.NORMAL);
+			Button btnStop=new Button(dialog, SWT.NORMAL);
+			Button btnSave=new Button(dialog, SWT.NORMAL);
+
+			btnRecord.setText("Record");
+			btnRecord.setSize(80,25);
+			btnRecord.setLocation(70,50);
+			btnRecord.addSelectionListener(new SelectionAdapter() {
+				public void widgetSelected(SelectionEvent e){
+					btnRecord.setEnabled(false);
+					btnStop.setEnabled(true);
+					btnSave.setEnabled(false);
+					
+					try {
+						tempFile = File.createTempFile("temp-file-name", ".wav");
+						System.out.println(tempFile);
+					} catch (IOException e1) {
+						e1.printStackTrace();
+					}
+					if(tempFile!=null){
+						AudioFileFormat.Type fileType = AudioFileFormat.Type.WAVE;
+						AudioFormat format =new AudioFormat(16000,8,2,true,true);
+						DataLine.Info info = new DataLine.Info(TargetDataLine.class, format);
+						if (!AudioSystem.isLineSupported(info)) {
+			                System.out.println("Line not supported");
+			                return;
+						}
+						try {
+							line = (TargetDataLine) AudioSystem.getLine(info);
+						class Recorder implements Runnable {
+
+							    public void run() {
+			            try {
+							line.open(format);
+						
+			            line.start();
+			            AudioInputStream ais = new AudioInputStream(line);
+			            AudioSystem.write(ais, fileType, tempFile);
+			            } catch (LineUnavailableException | IOException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+							    }
+						};
+						(new Thread(new Recorder())).start();
+						
+						} catch (LineUnavailableException e1) {
+
+							e1.printStackTrace();
+						}
+					}
+				}
+			});
+			
+			btnStop.setText("Stop");
+			btnStop.setSize(80,25);
+			btnStop.setLocation(170,50);
+			btnStop.setEnabled(false);
+			btnStop.addSelectionListener(new SelectionAdapter() {
+				public void widgetSelected(SelectionEvent e){
+					btnRecord.setEnabled(true);
+					btnStop.setEnabled(false);
+					btnSave.setEnabled(true);
+					line.stop();
+					line.close();
+					
+				}
+			});
+			
+			btnSave.setText("Save");
+			btnSave.setSize(80,25);
+			btnSave.setLocation(270,50);
+			btnSave.setEnabled(false);
+		    dialog.open();
+			}
+		});
 		MenuItem mntmAbout = new MenuItem(menu, SWT.NONE);
 		mntmAbout.setText("&About");
 		mntmAbout.addSelectionListener(new SelectionAdapter() {
