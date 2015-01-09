@@ -272,7 +272,7 @@ public class MainWindow {
 					}
 					if(tempFile!=null){
 						AudioFileFormat.Type fileType = AudioFileFormat.Type.WAVE;
-						AudioFormat format =new AudioFormat(16000,16,1,true,false);
+						AudioFormat format =new AudioFormat(22050,16,1,true,true);
 						DataLine.Info info = new DataLine.Info(TargetDataLine.class, format);
 						if (!AudioSystem.isLineSupported(info)) {
 			                System.out.println("Line not supported");
