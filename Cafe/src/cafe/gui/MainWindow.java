@@ -287,7 +287,7 @@ public class MainWindow {
 						line.open(format);
 			            line.start();
 			            AudioInputStream ais = new AudioInputStream(line);
-			            ais.skip(90112); //skipping 1 sec trash = 88KB
+			          // not allways trash!  ais.skip(90112); //skipping 1 sec trash = 88KB
 			            AudioSystem.write(ais, fileType, tempFile);
 			            } catch (LineUnavailableException | IOException e) {
 							// TODO Auto-generated catch block
