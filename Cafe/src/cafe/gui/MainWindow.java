@@ -1,6 +1,11 @@
 package cafe.gui;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -248,25 +253,26 @@ public class MainWindow {
 			Button btnRecord=new Button(dialog, SWT.NORMAL);
 			Button btnStop=new Button(dialog, SWT.NORMAL);
 			Button btnSave=new Button(dialog, SWT.NORMAL);
-
+			Button btnPlay=new Button(dialog, SWT.NORMAL);
 			btnRecord.setText("Record");
 			btnRecord.setSize(80,25);
-			btnRecord.setLocation(70,50);
+			btnRecord.setLocation(20,50);
 			btnRecord.addSelectionListener(new SelectionAdapter() {
 				public void widgetSelected(SelectionEvent e){
 					btnRecord.setEnabled(false);
 					btnStop.setEnabled(true);
 					btnSave.setEnabled(false);
-					
+					btnPlay.setEnabled(false);
 					try {
 						tempFile = File.createTempFile("temp-file-name", ".wav");
 						System.out.println(tempFile);
+						fileName=tempFile.toString();
 					} catch (IOException e1) {
 						e1.printStackTrace();
 					}
 					if(tempFile!=null){
 						AudioFileFormat.Type fileType = AudioFileFormat.Type.WAVE;
-						AudioFormat format =new AudioFormat(16000,8,2,true,true);
+						AudioFormat format =new AudioFormat(16000,16,1,true,false);
 						DataLine.Info info = new DataLine.Info(TargetDataLine.class, format);
 						if (!AudioSystem.isLineSupported(info)) {
 			                System.out.println("Line not supported");
@@ -301,23 +307,85 @@ public class MainWindow {
 			
 			btnStop.setText("Stop");
 			btnStop.setSize(80,25);
-			btnStop.setLocation(170,50);
+			btnStop.setLocation(120,50);
 			btnStop.setEnabled(false);
 			btnStop.addSelectionListener(new SelectionAdapter() {
 				public void widgetSelected(SelectionEvent e){
 					btnRecord.setEnabled(true);
 					btnStop.setEnabled(false);
 					btnSave.setEnabled(true);
+					btnPlay.setEnabled(true);
 					line.stop();
 					line.close();
-					
+					//mntmOpen.notifyListeners(SWT.Selection, new Event());
+
+		    		int width = shell.getSize().x;
+		    		int height = shell.getSize().y-MENU_HEIGHT;				    				    		
+		    		drawingLabel.setSize(width,height);
+		    		drawingLabel.setLocation(0, 0);
+		    		dw = new DrawWaveform(width,height,drawingLabel.getDisplay(),fileName);
+		    		dw.draw();
+		    		drawingLabel.setImage(dw.getImage());
 				}
 			});
 			
 			btnSave.setText("Save");
 			btnSave.setSize(80,25);
-			btnSave.setLocation(270,50);
+			btnSave.setLocation(220,50);
 			btnSave.setEnabled(false);
+			btnSave.addSelectionListener(new SelectionAdapter() {
+				public void widgetSelected(SelectionEvent e){
+			        FileDialog fd = new FileDialog(shell, SWT.SAVE);
+			        fd.setText("Save");
+			        fd.setFilterPath("C:/");
+			        String[] filterExt = { "*.wav", "*.*" };
+			        fd.setFilterExtensions(filterExt);
+			        fileName = fd.open();
+			   
+			        System.out.println(fileName);
+			        if (fileName != null) {
+			        	FileInputStream fr=null;
+			        	FileOutputStream fw=null;
+			        	try {
+							fr=new FileInputStream(tempFile);
+				
+						   	fw=new FileOutputStream(fileName,false);
+						   	byte[] buffer = new byte[8 * 1024];
+						   	int bytesRead;
+						    while ((bytesRead = fr.read(buffer)) != -1){				    
+						      fw.write(buffer,0,bytesRead);
+						    }
+						    fr.close();
+						    fw.close();
+						} catch (IOException e1) {
+							// TODO Auto-generated catch block
+							e1.printStackTrace();
+						}
+			     
+			        	
+				        
+				        dialog.close();
+			        }
+				}
+			});
+			btnPlay.setText("Play");
+			btnPlay.setSize(80,25);
+			btnPlay.setLocation(320,50);
+			btnPlay.setEnabled(false);
+			btnPlay.addSelectionListener(new SelectionAdapter() {
+				public void widgetSelected(SelectionEvent e){
+					try{
+						if(!fileName.isEmpty()){
+							Clip clip = AudioSystem.getClip();
+						clip.open(AudioSystem.getAudioInputStream(new File(fileName)));
+					    clip.start();
+						}
+						}catch(Exception e1){
+							System.err.println(e1);
+							e1.printStackTrace();
+						}
+				}
+			});
 		    dialog.open();
 			}
 		});
