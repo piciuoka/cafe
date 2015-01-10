@@ -3,7 +3,7 @@ package cafe.analysis;
 public class Analysis {
 	
 //	private static final int PERIODCOUNT = 4;
-	private static final double OVERLAP = 0.25;
+	private static final double OVERLAP = 0.5;
 	private static final int WINDOW = 1024;
 	private static final boolean DEBUG = false;
 		
@@ -16,10 +16,10 @@ public class Analysis {
 	public static final int GAUSS 	  = 0x40;
 	
 	private int window = 0;
+	private WindowFunction windowFunction = new WindowFunction();
 	
 	private int n;
 	private int freq;
-	private int ln_n;
 	private int points;
 	private int sign;
 	private double bas; 	
@@ -40,7 +40,7 @@ public class Analysis {
 		freq = s;
 //		int log2 = (int)(Math.log(n)/Math.log(2)+1e-10);
 		double log2 = Math.log(n)/Math.log(2);
-		ln_n = (int) Math.round(log2+0.5);
+		int ln_n = (int) Math.round(log2+0.5);
 		points = (int) Math.round(Math.pow(2, ln_n));
 
 		re = new double[points+1];
@@ -53,11 +53,15 @@ public class Analysis {
 		
 	public void clear() {
 	
-		index = 0;
+//		index = 0;
 		for (int i=0;i<points;i++) {
 			re[i] = 0;
 			im[i] = 0;
 		}
+	}
+
+	public void clearData() {
+		index = 0;
 	}
 	
 	public void copy(double x) {
@@ -67,20 +71,31 @@ public class Analysis {
 		index++;
 	}
 	
-	public void fft() {
+	public void fft(int lnn) {
 	
 		sign = -1;
-	    cafe.analysis.FFT.fft(re,im,ln_n,sign);
+	    cafe.analysis.FFT.fft(re,im,lnn,sign);
 	    re = cafe.analysis.FFT.get_re();
 	    im = cafe.analysis.FFT.get_im();
 	}
 	
 	public double[] getTheta(int _begin, int count) {
  	    assert((count>=0) && (_begin+count<n));
-	    for (int i=0;i<count;i++) 
-	    	re[i]=data[_begin+i];	
+
+ 	    double log2 = Math.log(count)/Math.log(2);
+		int lnn = (int)Math.round(log2+1.0);
+		int npoints=(int)Math.round(Math.pow(2.0,lnn));
+
+	    for (int i=0;i<count;i++) {
+	    	re[i]=data[_begin+i];
+	    	im[i]=0;
+	    }
+	    for (int i=count;i<npoints;i++) {
+	    	re[i]=0;
+	    	im[i]=0;	    	
+	    }	    
 		sign = -1;
-	    cafe.analysis.FFT.fft(re,im,ln_n,sign);
+	    cafe.analysis.FFT.fft(re,im,lnn,sign);
 	    return cafe.analysis.FFT.get_theta();	    
 	}
 
@@ -106,8 +121,7 @@ public class Analysis {
 	public double[] getPhaseTable() {
 	    for (int i=0;i<1024;i++) 
 	    	re[i]=data[i];	
-		sign = -1;
-	    cafe.analysis.FFT.fft(re,im,10,sign);
+	    cafe.analysis.FFT.fft(re,im,10,-1);
 	    double[] temp1 = cafe.analysis.FFT.get_theta();
 //	    for (int i=0; i<temp1.length;i++)
 //	    	temp1[i]=Math.abs(temp1[i]);
@@ -129,9 +143,9 @@ public class Analysis {
 	  return (i*freq)/points;
 	}
 
-	public int getPoints() {
-	  return points;
-	}
+//	public int getPoints() {
+//	  return points;
+//	}
 
 	public double getBasicFrequency(int i) {
 	  assert((i>=0) && (i<=index_res));
@@ -163,41 +177,20 @@ public class Analysis {
 	
 	public double[] doWindow(double[] t, int m) {		
 		switch (window) {		
-			case HANNING: return doHanning(t,m); 
-			case BLACKMANN: return doBlackman(t,m);
-			case GAUSS: return doGauss(t,m,0); 
+			case HANNING: return windowFunction.doHanning(t,m); 
+			case BLACKMANN: return windowFunction.doBlackman(t,m);
+			case GAUSS: return windowFunction.doGauss(t,m,freq); 
 			default: return t;
 		}
 	
 	}
 	
-	public double[] doHanning(double[] t, int m) {
-		for (int i=0; i<m; i++) {
-		  t[i]=0.5*(1-Math.cos(2.0*Math.PI*i/m))*t[i];
-		}
-		return t;
-	}
-		
-	public double[] doBlackman(double[] t, int m) { //dla porównywania fazy
-		for (int i=0; i<m; i++) {
-		  t[i]=(0.42-0.5*Math.cos(2*Math.PI*i/m)+0.08*Math.cos(4.0*Math.PI*i/m))*t[i];
-		}
-		return t;
-	}
-	
-	public double[] doGauss(double[] t, int m, int k) {
-		if (k==0) k=freq;
-		for (int i=0; i<m; i++) {
-			double temp = ((i-m-1.0)/2.0)/k;
-			t[i]=Math.exp(-temp*temp)*t[i];
-		}
-		return t;
-	}
 
 	public void acorr(int l) {
 	// !!! speed up
 		int _n;
-		if (n>350) _n=350; else _n=n;
+//		if (n>350) _n=350; else _n=n;
+		_n=l;
 		cafe.analysis.Autocorrelation.acorr(re,im,l,_n);
 		re = cafe.analysis.Autocorrelation.get_fr();
 		im = cafe.analysis.Autocorrelation.get_fi();		
@@ -220,8 +213,9 @@ public class Analysis {
 	    }
 	    howmany=0;
 
-	    // speedup
-	    if (_N<350) n2=_N; else n2=350;
+// speedup
+//	    if (_N<350) n2=_N; else n2=350;
+	    n2=_N;
 	    for (i=79; i<n2-1; i++) {
 	    	y1=getIm(i-1)-getIm(i);
 	    	y2=getIm(i)-getIm(i+1);
@@ -268,9 +262,9 @@ public class Analysis {
 	  		maxy=getIm((int)Math.round(tx[lastElement]-1));
 	  		
 	  		do {
-	  			y=interpolation(tx[lastElement]-1,getIm((int)Math.round(tx[lastElement]-1)),
+	  			y=(new Interpolation().interpolation(tx[lastElement]-1,getIm((int)Math.round(tx[lastElement]-1)),
 	  							tx[lastElement],getIm((int)Math.round(tx[lastElement])),
-	  							tx[lastElement]+1,getIm((int)Math.round(tx[lastElement]+1)),x);
+	  							tx[lastElement]+1,getIm((int)Math.round(tx[lastElement]+1)),x));
 	  			if (y>maxy) maxy=y;
 	  			x=x+0.01;
 	  		}
@@ -290,7 +284,7 @@ public class Analysis {
 	    for (i=0; i<n; i++)  
 	    	re[i]=data[i];
 	    
-	    re = doWindow(re,n);
+//	    re = doWindow(re,n);
 
 	    acorr(n);
 
@@ -367,25 +361,30 @@ public class Analysis {
 	    double framebas,lastframebas;
 	
 	    clear();
+	    
+		double log2 = Math.log(n)/Math.log(2);
+		int ln_n = (int)Math.round(log2+1);		
+		int count=(int)Math.round(Math.pow(2.0,ln_n));
+
 	    for (i=0; i<n; i++) 
 	    	re[i]=data[i];
 	    
-	    re = doWindow(re,n);
+//	    re = doWindow(re,n);
 
-	    fft();
+	    fft(ln_n);
 
-	    for (i=0; i<getPoints(); i++) {
+	    for (i=0; i<count; i++) {
 	      re[i]=getMod(i);
 	      im[i]=re[i];
 	    }
 	    
-	    fft();
+	    fft(ln_n);
 
-	    for (i=0; i<getPoints(); i++) {
+	    for (i=0; i<count; i++) {
 		      im[i]=getMod(i);
 		}
 	    
-	    bas=getABasFr(getPoints()/2);
+	    bas=getABasFr(count/2);
 	    
 	    if (DEBUG)
 	    	System.out.println("F0 = " + Double.toString(freq/bas));    
@@ -396,8 +395,7 @@ public class Analysis {
 	    }
 	    
 	    lastframebas=bas;
-//	    res = new double[(int)Math.round(((n*2)/bas)+0.5)+1000];
-//	    resAmplitude = new double[(int)Math.round(((n*2)/bas)+0.5)+1000];
+
 	    res = new double[(int)Math.round(n/(WINDOW*OVERLAP)+0.5)];
 	    resAmplitude = new double[(int)Math.round(n/(WINDOW*OVERLAP)+0.5)];
 	    index_res=0;
@@ -407,48 +405,50 @@ public class Analysis {
 	    next=WINDOW;
    
 //	    lnN:=Round(Log2(next)+1);
-		double log2 = Math.log(next)/Math.log(2);
-		ln_n = (int)Math.round(log2+1);
-		
-		points=(int)Math.round(Math.pow(2.0,ln_n));
+		log2 = Math.log(next)/Math.log(2);
+		ln_n = (int)Math.round(log2+1);		
+		count=(int)Math.round(Math.pow(2.0,ln_n));
 
-		re = new double[points+1];
-		im = new double[points+1];
-    	double[] in = new double[points+1];
+//		re = new double[points+1];
+//		im = new double[points+1];
 		clear();
 
 		j=0;
 		
 		do {
 
-		    for (i=0;i<next;i++) {
+			for (i=0;i<next;i++) {
 		    	re[i]=data[i+j];
+		    	im[i]=0;
 		    }
+		    for (i=next;i<count;i++) {
+		    	re[i]=0;
+		    	im[i]=0;
+		    }
+		    		    
 		    resAmplitude[index_res]=max(re,next);
 		    
 		    re = doWindow(re,next);
 		    
-		    fft();
+		    fft(ln_n);
 		    
-		    for (i=0;i<getPoints();i++) {
+		    for (i=0;i<count;i++) {
 		    	if (getFrequency(i)>40) {
 		    		re[i]=getMod(i);
 		    		im[i]=re[i];
-			    	in[i]=re[i];
 		    	} else {
 		    		re[i]=0;
 		    		im[i]=0;
-			    	in[i]=0;
 		    	}
 		    }
 		    
-		    fft();
+		    fft(ln_n);
 
-		    for (i=0; i<getPoints(); i++) {
+		    for (i=0; i<count; i++) {
 			      im[i]=getMod(i);
 			}		    
 		    
-		    framebas=getABasFr(getPoints()/2);
+		    framebas=getABasFr(count/2);
 
 	    	if ((framebas!=0) && (Math.abs(freq/framebas-freq/lastframebas)<25) 
 	    		/* && (Math.abs(freq/framebas-freq/bas)<25)*/ ) {
@@ -486,10 +486,10 @@ public class Analysis {
 		return max;
 	}
 
-	public double getFundamentalFrequencyAmplitude(double frequency, double[] in, int ln_n) {
+	public double getFundamentalFrequencyAmplitude(double frequency, double[] in, int lnn) {
 
 		double[] temp = new double[in.length];
-		cafe.analysis.FFT.fft(in,temp,ln_n,-1);
+		cafe.analysis.FFT.fft(in,temp,lnn,-1);
 		int i = (int)Math.floor(freq/frequency+0.5);
 		return cafe.analysis.FFT.get_re()[i];		
 	}	
@@ -500,17 +500,16 @@ public class Analysis {
 		double[] temp;
 		double sum;
 		
-		phaseResult = new double[(int)Math.round((index/(next*OVERLAP))+0.5)+100];
+		phaseResult = new double[(int)Math.round((n/(WINDOW*OVERLAP))+0.5)];
 		do {
 			temp = getTheta(j,next);
 			sum=0;
 			for (i=0;i<temp.length;i++)
 				sum+=temp[i];
 			phaseResult[k++]=sum;
-			j+=(int)Math.round(next*OVERLAP+0.5);
-			if (j+next>=index) next=index-j;
+			j+=(int)Math.round(WINDOW*OVERLAP+0.5);
 		}		
-		while (next>0);
+		while (j+next<n);
 		
 		if (DEBUG)
 		    for (i=0; i<phaseResult.length; i++) { 
@@ -518,42 +517,43 @@ public class Analysis {
 		    }
 		
 	}
-		
-	public CoeffPack coeff() {
-	
-		int i;
-	    double c,c0,cmax;
-	    int index;
-	    double y1,y2;
-	    CoeffPack result = new CoeffPack(); 
-	    
-	    c=0;
-	    cmax=-100000;
-	    index=0;
-	    result.c=0;
-	    result.max=0;
-	    if (bas==0) return result;
-	    
-	    
-	    for (i=0;i<index_res;i++) {
-	    	y1=res[i];
-	    	y2=res[i+1];
-	    	if ((y1!=0) && (y2!=0)) {
-	    		index++;
-	    		c0=Math.abs(y2-y1)/bas;
-	    		c=c+c0;
-	    		if (c0>cmax) cmax=c0;
-	    	}
-	    }
-	    
-	  result.c = Math.round((c*10000.0)/index)/10000.0;
-	  result.max = Math.round(cmax*10000.0)/10000.0;
 
-//	  result.c = ((c*10000)/index)/10000.0;
-//	  result.max = (cmax*10000)/10000.0;
-	  
-	  return result;	  
-	}
+	
+//	public CoeffPack coeff() {
+//	
+//		int i;
+//	    double c,c0,cmax;
+//	    int j;
+//	    double y1,y2;
+//	    CoeffPack result = new CoeffPack(); 
+//	    
+//	    c=0;
+//	    cmax=-100000;
+//	    j=0;
+//	    result.c=0;
+//	    result.max=0;
+//	    if (bas==0) return result;
+//	    
+//	    
+//	    for (i=0;i<index_res;i++) {
+//	    	y1=res[i];
+//	    	y2=res[i+1];
+//	    	if ((y1!=0) && (y2!=0)) {
+//	    		j++;
+//	    		c0=Math.abs(y2-y1)/bas;
+//	    		c=c+c0;
+//	    		if (c0>cmax) cmax=c0;
+//	    	}
+//	    }
+//	    
+//	  result.c = Math.round((c*10000.0)/j)/10000.0;
+//	  result.max = Math.round(cmax*10000.0)/10000.0;
+//
+////	  result.c = ((c*10000)/j)/10000.0;
+////	  result.max = (cmax*10000)/10000.0;
+//	  
+//	  return result;	  
+//	}
 	
 	
 	public void bubbleSort(double [] _tx, double [] _ty, int s, int e) {
@@ -580,41 +580,6 @@ public class Analysis {
 	    	}
 	    upper=shift;
 	    }
-	}
-
-	
-	public double interpolation(double x1, double y1, double x2, double y2, double x3, double y3, double x0) {
-	
-		double[] tab = new double [3*3+3];
-		double[] x = new double [3];
-		double[] b = new double [3];
-	    int k,l,n;
-	    double y,p;
-
-	    n=3;
-	    x[0]=x1;
-	    x[1]=x2;
-	    x[2]=x3;
-
-	    tab[0]=y1;
-	    tab[1]=y2;
-	    tab[2]=y3;
-
-	    for (k=1; k<n; k++) 
-	    	for (l=k; l<n; l++)
-	    		tab[k*n+l]=(tab[(k-1)*n+l]-tab[(k-1)*n+l-1])/(x[l]-x[l-k]);
-
-	    for (k=0; k<n; k++) 
-	    	b[k]=tab[k*(n+1)];
-
-	    y=0;
-	    p=1;
-	    for (k=0; k<n;k++) {
-	    	y=y+b[k]*p;
-	    	p=p*(x0-x[k]);
-	    }
-
-	    return y;
 	}
 	
 }

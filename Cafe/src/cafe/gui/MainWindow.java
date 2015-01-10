@@ -217,7 +217,7 @@ public class MainWindow {
 
 					cbf.transform();
 // time consuming
-//					cph.transform();
+					cph.transform();
 										
 					ChartResultWindow resultWindow = new ChartResultWindow("Chart");
 					resultWindow.open(cbf.getBasicFrequencyTable(),"Basic Frequency", "t", "f [Hz]" );
@@ -225,8 +225,8 @@ public class MainWindow {
 					ChartResultWindow resultWindow1 = new ChartResultWindow("Chart");
 					resultWindow1.open(cbf.getBasicFrequencyAmplitudeTable(),"Amplitude", "t","A" );
 
-//					ChartResultWindow resultWindow2 = new ChartResultWindow("Chart");
-//					resultWindow2.open(cph.getPhaseTable(),"Phase Spectrum", "f","Theta [rad]" );
+					ChartResultWindow resultWindow2 = new ChartResultWindow("Chart");
+					resultWindow2.open(cph.getPhaseTable(),"Phase Spectrum", "f","Theta [rad]" );
 					
 				} catch (Exception exc) {
 					System.err.println(exc);
