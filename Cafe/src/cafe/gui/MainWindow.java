@@ -245,7 +245,7 @@ public class MainWindow {
 		mntmPlay.addSelectionListener(new SelectionAdapter() {
 			public void widgetSelected(SelectionEvent e) {
 				try{
-				if(!fileName.isEmpty()){
+				if(fileName != null){
 					Clip clip = AudioSystem.getClip();
 				clip.open(AudioSystem.getAudioInputStream(new File(fileName)));
 			    clip.start();
@@ -388,7 +388,7 @@ public class MainWindow {
 			btnPlay.addSelectionListener(new SelectionAdapter() {
 				public void widgetSelected(SelectionEvent e){
 					try{
-						if(!fileName.isEmpty()){
+						if(fileName != null){
 							Clip clip = AudioSystem.getClip();
 						clip.open(AudioSystem.getAudioInputStream(new File(fileName)));
 					    clip.start();
