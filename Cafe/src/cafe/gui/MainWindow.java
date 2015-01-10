@@ -8,6 +8,13 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStream;
 
 import javax.sound.sampled.AudioFileFormat;
 import javax.sound.sampled.AudioFormat;
@@ -229,7 +236,6 @@ public class MainWindow {
 		}
 		});
 		mntmCompute.setText("Compute ");
-		
 		MenuItem mntmMusic = new MenuItem(menu, SWT.CASCADE);
 		mntmMusic.setText("&Sound");
 		Menu menu_2 = new Menu(mntmMusic);
@@ -239,10 +245,10 @@ public class MainWindow {
 		mntmPlay.addSelectionListener(new SelectionAdapter() {
 			public void widgetSelected(SelectionEvent e) {
 				try{
-				if(fileName != null){
+				if(!fileName.isEmpty()){
 					Clip clip = AudioSystem.getClip();
-					clip.open(AudioSystem.getAudioInputStream(new File(fileName)));
-					clip.start();
+				clip.open(AudioSystem.getAudioInputStream(new File(fileName)));
+			    clip.start();
 				}
 				}catch(Exception e1){
 					System.err.println(e1);
@@ -382,7 +388,7 @@ public class MainWindow {
 			btnPlay.addSelectionListener(new SelectionAdapter() {
 				public void widgetSelected(SelectionEvent e){
 					try{
-						if(fileName != null){
+						if(!fileName.isEmpty()){
 							Clip clip = AudioSystem.getClip();
 						clip.open(AudioSystem.getAudioInputStream(new File(fileName)));
 					    clip.start();
