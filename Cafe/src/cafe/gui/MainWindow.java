@@ -220,10 +220,10 @@ public class MainWindow {
 					cph.transform();
 										
 					ChartResultWindow resultWindow = new ChartResultWindow("Chart");
-					resultWindow.open(cbf.getBasicFrequencyTable(),"Basic Frequency", "t", "f [Hz]" );
+					resultWindow.open(cbf.getFundamentalFrequencyTable(),"Fundamental Frequency", "t", "f [Hz]" );
 					
 					ChartResultWindow resultWindow1 = new ChartResultWindow("Chart");
-					resultWindow1.open(cbf.getBasicFrequencyAmplitudeTable(),"Amplitude", "t","A" );
+					resultWindow1.open(cbf.getFundamentalFrequencyAmplitudeTable(),"Amplitude", "t","A" );
 
 					ChartResultWindow resultWindow2 = new ChartResultWindow("Chart");
 					resultWindow2.open(cph.getPhaseTable(),"Phase Spectrum", "f","Theta [rad]" );

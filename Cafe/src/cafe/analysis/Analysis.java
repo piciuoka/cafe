@@ -7,14 +7,6 @@ public class Analysis {
 	private static final int WINDOW = 1024;
 	private static final boolean DEBUG = false;
 		
-	public static final int ACOR = 0x00;
-	public static final int FFT  = 0x01;
-	
-	public static final int RECTANGLE = 0x10;
-	public static final int HANNING   = 0x20;
-	public static final int BLACKMANN = 0x30;
-	public static final int GAUSS 	  = 0x40;
-	
 	private int window = 0;
 	private WindowFunction windowFunction = new WindowFunction();
 	
@@ -29,9 +21,9 @@ public class Analysis {
 	private double[] data;
 	public int index;
 
-	private int index_res;
-    private double res[];
-    private double resAmplitude[];
+	protected int index_res;
+    protected double res[];
+    protected double resAmplitude[];
     
     private double phaseResult[];
 		
@@ -142,33 +134,35 @@ public class Analysis {
 	  assert((i>=0) && (i<points));
 	  return (i*freq)/points;
 	}
+	
+	
 
 //	public int getPoints() {
 //	  return points;
 //	}
 
-	public double getBasicFrequency(int i) {
-	  assert((i>=0) && (i<=index_res));
-	  return res[i];
-	}
-
-	public int getBasicFrequencyCount() {
-	  return index_res;
-	}
-
-	public double[] getBasicFrequencyTable() {
-		double[] temp = new double[index_res];
-		temp = java.util.Arrays.copyOf(res, index_res);
-		return temp;
-//		return res;
-	}
-
-	public double[] getBasicFrequencyAmplitudeTable() {
-		double[] temp = new double[index_res];
-		temp = java.util.Arrays.copyOf(resAmplitude, index_res);
-		return temp;
-//		return resAmplitude;
-	}
+//	public double getFundamentalFrequency(int i) {
+//	  assert((i>=0) && (i<=index_res));
+//	  return res[i];
+//	}
+//
+//	public int getFundamentalFrequencyCount() {
+//	  return index_res;
+//	}
+//
+//	public double[] getBasicFrequencyTable() {
+//		double[] temp = new double[index_res];
+//		temp = java.util.Arrays.copyOf(res, index_res);
+//		return temp;
+////		return res;
+//	}
+//
+//	public double[] getBasicFrequencyAmplitudeTable() {
+//		double[] temp = new double[index_res];
+//		temp = java.util.Arrays.copyOf(resAmplitude, index_res);
+//		return temp;
+////		return resAmplitude;
+//	}
 	
 	
 	public void setWindow(int w) {
@@ -177,9 +171,9 @@ public class Analysis {
 	
 	public double[] doWindow(double[] t, int m) {		
 		switch (window) {		
-			case HANNING: return windowFunction.doHanning(t,m); 
-			case BLACKMANN: return windowFunction.doBlackman(t,m);
-			case GAUSS: return windowFunction.doGauss(t,m,freq); 
+			case WindowFunction.HANNING: return windowFunction.doHanning(t,m); 
+			case WindowFunction.BLACKMANN: return windowFunction.doBlackman(t,m);
+			case WindowFunction.GAUSS: return windowFunction.doGauss(t,m,freq); 
 			default: return t;
 		}
 	
@@ -486,13 +480,13 @@ public class Analysis {
 		return max;
 	}
 
-	public double getFundamentalFrequencyAmplitude(double frequency, double[] in, int lnn) {
-
-		double[] temp = new double[in.length];
-		cafe.analysis.FFT.fft(in,temp,lnn,-1);
-		int i = (int)Math.floor(freq/frequency+0.5);
-		return cafe.analysis.FFT.get_re()[i];		
-	}	
+//	public double getFundamentalFrequencyAmplitude(double frequency, double[] in, int lnn) {
+//
+//		double[] temp = new double[in.length];
+//		cafe.analysis.FFT.fft(in,temp,lnn,-1);
+//		int i = (int)Math.floor(freq/frequency+0.5);
+//		return cafe.analysis.FFT.get_re()[i];		
+//	}	
 	
 	public void fpm() {
 		

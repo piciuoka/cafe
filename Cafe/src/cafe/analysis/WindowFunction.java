@@ -1,6 +1,11 @@
 package cafe.analysis;
 
 public class WindowFunction {
+
+	public static final int RECTANGLE = 0x10;
+	public static final int HANNING   = 0x20;
+	public static final int BLACKMANN = 0x30;
+	public static final int GAUSS 	  = 0x40;
 	
 	public double[] doHanning(double[] t, int m) {
 		for (int i=0; i<m; i++) {

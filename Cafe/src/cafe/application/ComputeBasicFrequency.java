@@ -1,34 +1,35 @@
 package cafe.application;
 
-import cafe.analysis.Analysis;
 import cafe.analysis.AudioFeature;
+import cafe.analysis.FundamentalFrequency;
+import cafe.analysis.FundamentalFrequencyAutocorrelation;
+import cafe.analysis.FundamentalFrequencyCepstrum;
+import cafe.analysis.WindowFunction;
 
 public class ComputeBasicFrequency {
 
-	private Analysis analysis;
+	private FundamentalFrequency ff;
     private int bps;
     private int n;
 	
 	public ComputeBasicFrequency(int np, int s) {
 		
-		analysis = new Analysis();
 		bps=s;
 		n=np;
-		analysis.init(np, s);
+		ff = new FundamentalFrequencyAutocorrelation(np, s);
+//		ff = new FundamentalFrequencyCepstrum(np, s);		
 	}
 	
 	public void copy(double x) {
-		analysis.copy(x);
+		ff.copy(x);
 	}
 	
 	public void transform() {
 
-		analysis.setWindow(Analysis.HANNING);
-
-//		analysis.afm();
-		analysis.ffm();
-		
-		AudioFeature audioFeature = new AudioFeature(analysis.getBasicFrequencyTable(), analysis.getBasicFrequencyAmplitudeTable());
+		ff.setWindow(WindowFunction.HANNING);
+		ff.calculate();
+						
+		AudioFeature audioFeature = new AudioFeature(ff);
 
 		System.out.println("Jitter (absolute)  : "+Double.toString(audioFeature.jitterAbsolute()));
 		System.out.println("Jitter (relative)  : "+Double.toString(audioFeature.jitterRelative()));
@@ -40,12 +41,12 @@ public class ComputeBasicFrequency {
 					
 	}
 		
-	public double[] getBasicFrequencyTable() {
-		return analysis.getBasicFrequencyTable();
+	public double[] getFundamentalFrequencyTable() {
+		return ff.getFundamentalFrequencyTable();
 	}
 
-	public double[] getBasicFrequencyAmplitudeTable() {
-		return analysis.getBasicFrequencyAmplitudeTable();
+	public double[] getFundamentalFrequencyAmplitudeTable() {
+		return ff.getFundamentalFrequencyAmplitudeTable();
 	}
 	
 }

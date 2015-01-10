@@ -9,6 +9,11 @@ public class AudioFeature {
 		fundamentalFrequency = ff;
 		fundamentalFrequencyAmplitude = ffa;
 	}
+
+	public AudioFeature(FundamentalFrequency ff){
+		fundamentalFrequency = ff.getFundamentalFrequencyTable();
+		fundamentalFrequencyAmplitude = ff.getFundamentalFrequencyAmplitudeTable();
+	}
 	
 	public double jitterAbsolute() {
 		
