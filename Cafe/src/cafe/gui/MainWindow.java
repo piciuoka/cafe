@@ -2,6 +2,9 @@ package cafe.gui;
 
 import java.io.File;
 
+import javax.sound.sampled.AudioSystem;
+import javax.sound.sampled.Clip;
+
 import org.eclipse.jface.resource.FontDescriptor;
 import org.eclipse.swt.widgets.Canvas;
 import org.eclipse.swt.widgets.Display;
@@ -24,6 +27,7 @@ import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 
 import cafe.application.ComputeBasicFrequency;
+import cafe.application.ComputePhaseSpectrum;
 import cafe.audio.DrawWaveform;
 import cafe.audio.WavFile;
 
@@ -42,8 +46,9 @@ public class MainWindow {
 	 */
 
 	public MainWindow(){
-		shell = new Shell();
-		drawingLabel=new Label(shell, SWT.NORMAL);
+// gobbles with WindowDesigner		
+//		shell = new Shell();
+//		drawingLabel=new Label(shell, SWT.NORMAL);
 		
 	}
 
@@ -65,10 +70,10 @@ public class MainWindow {
 	 */
 	protected void createContents() {
 
-/* 
- * 	Drawing on canvas	
+// needed here		
  		shell = new Shell(display, SWT.SHELL_TRIM | SWT.DOUBLE_BUFFERED);
-*/ 		 		
+		drawingLabel=new Label(shell, SWT.NORMAL);
+		 		
 		shell.setLocation(400, 200);
 		shell.setSize(800, 600);
 		shell.setText("CAFE Application");
@@ -175,6 +180,7 @@ public class MainWindow {
 //					finish = 6000-2;
 
 					ComputeBasicFrequency cbf = new ComputeBasicFrequency(finish-start,samplesPerSec);
+					ComputePhaseSpectrum cph = new ComputePhaseSpectrum(finish-start,samplesPerSec);
 
 					System.out.println("	- copy " + Integer.toString(finish-start) +" bytes");
 					for (int i=0; i<start; i++) 
@@ -182,15 +188,22 @@ public class MainWindow {
 					for (int i=0; i<finish-start; i++) {
 						framesRead = wavFile.readFrames(buffer,1);
 						cbf.copy(buffer[0]);
-//						System.out.println(Integer.toString(i)+" "+Integer.toString(buffer[0]));
+						cph.copy(buffer[0]);
 					}
 					wavFile.close();
 
 					cbf.transform();
-					System.out.println("Result: ");
-					
+// time consuming
+//					cph.transform();
+										
 					ChartResultWindow resultWindow = new ChartResultWindow("Chart");
 					resultWindow.open(cbf.getBasicFrequencyTable(),"Basic Frequency", "t", "f [Hz]" );
+					
+					ChartResultWindow resultWindow1 = new ChartResultWindow("Chart");
+					resultWindow1.open(cbf.getBasicFrequencyAmplitudeTable(),"Amplitude", "t","A" );
+
+//					ChartResultWindow resultWindow2 = new ChartResultWindow("Chart");
+//					resultWindow2.open(cph.getPhaseTable(),"Phase Spectrum", "f","Theta [rad]" );
 					
 				} catch (Exception exc) {
 					System.err.println(exc);
@@ -200,6 +213,24 @@ public class MainWindow {
 		}
 		});
 		mntmCompute.setText("Compute ");
+		
+		MenuItem mntmPlay = new MenuItem(menu, SWT.NONE);
+		mntmPlay.setText("&Play");
+		mntmPlay.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+			    try
+			    {
+			        Clip clip = AudioSystem.getClip();
+			        clip.open(AudioSystem.getAudioInputStream(new File(fileName)));
+			        clip.start();			        
+			    }
+			    catch (Exception exc)
+			    {
+			        exc.printStackTrace(System.out);
+			    }
+			}
+		});
 		
 		MenuItem mntmAbout = new MenuItem(menu, SWT.NONE);
 		mntmAbout.setText("&About");
@@ -231,15 +262,5 @@ public class MainWindow {
 			}
 		});
 		
-/*				
-		final Canvas canvas = new Canvas(shell,SWT.NONE);
-	    canvas.addPaintListener(new PaintListener() {
-	        public void paintControl(PaintEvent e) {
-	            Rectangle clientArea = canvas.getClientArea();
-	            e.gc.setBackground(Display.getDefault().getSystemColor(SWT.COLOR_CYAN));
-	            e.gc.fillOval(0,0,clientArea.width,clientArea.height); 
-	        }
-	    });
-*/
 	}
 }

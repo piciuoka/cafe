@@ -2,6 +2,21 @@ package cafe.analysis;
 
 public class Analysis {
 	
+//	private static final int PERIODCOUNT = 4;
+	private static final double OVERLAP = 0.25;
+	private static final int WINDOW = 1024;
+	private static final boolean DEBUG = false;
+		
+	public static final int ACOR = 0x00;
+	public static final int FFT  = 0x01;
+	
+	public static final int RECTANGLE = 0x10;
+	public static final int HANNING   = 0x20;
+	public static final int BLACKMANN = 0x30;
+	public static final int GAUSS 	  = 0x40;
+	
+	private int window = 0;
+	
 	private int n;
 	private int freq;
 	private int ln_n;
@@ -9,16 +24,17 @@ public class Analysis {
 	private int sign;
 	private double bas; 	
 	
-	private double[] fr;
-	private double[] fi;
+	private double[] re;
+	private double[] im;
 	private double[] data;
+	public int index;
 
 	private int index_res;
     private double res[];
-	
-	public int index;
-
-	
+    private double resAmplitude[];
+    
+    private double phaseResult[];
+		
 	public void init(int _n, int s){
 		n = _n;
 		freq = s;
@@ -27,8 +43,8 @@ public class Analysis {
 		ln_n = (int) Math.round(log2+0.5);
 		points = (int) Math.round(Math.pow(2, ln_n));
 
-		fr = new double[points+1];
-		fi = new double[points+1];
+		re = new double[points+1];
+		im = new double[points+1];
 
 		index = 0;
 		data = new double[_n+1];
@@ -39,8 +55,8 @@ public class Analysis {
 	
 		index = 0;
 		for (int i=0;i<points;i++) {
-			fr[i] = 0;
-			fi[i] = 0;
+			re[i] = 0;
+			im[i] = 0;
 		}
 	}
 	
@@ -54,27 +70,61 @@ public class Analysis {
 	public void fft() {
 	
 		sign = -1;
-	    cafe.analysis.FFT.fft(fr,fi,ln_n,sign);
-	    fr = cafe.analysis.FFT.get_fr();
-	    fi = cafe.analysis.FFT.get_fi();
+	    cafe.analysis.FFT.fft(re,im,ln_n,sign);
+	    re = cafe.analysis.FFT.get_re();
+	    im = cafe.analysis.FFT.get_im();
+	}
+	
+	public double[] getTheta(int _begin, int count) {
+ 	    assert((count>=0) && (_begin+count<n));
+	    for (int i=0;i<count;i++) 
+	    	re[i]=data[_begin+i];	
+		sign = -1;
+	    cafe.analysis.FFT.fft(re,im,ln_n,sign);
+	    return cafe.analysis.FFT.get_theta();	    
 	}
 
+	public double[] getPhaseSpectrumTable() {
+		return phaseResult;
+	}
+	
 	public double getRe(int i) {
-	  assert((i>=0) && (i<points));
-	  return fr[i];
+		assert((i>=0) && (i<points));
+		return re[i];
 	}
 
+	public double[] getReTable() {
+	    for (int i=0;i<1024;i++) 
+	    	re[i]=data[i];	
+		sign = -1;
+	    cafe.analysis.FFT.fft(re,im,10,sign);
+	    re = cafe.analysis.FFT.get_re();
+	    im = cafe.analysis.FFT.get_im();
+		return re;
+	}
+	
+	public double[] getPhaseTable() {
+	    for (int i=0;i<1024;i++) 
+	    	re[i]=data[i];	
+		sign = -1;
+	    cafe.analysis.FFT.fft(re,im,10,sign);
+	    double[] temp1 = cafe.analysis.FFT.get_theta();
+//	    for (int i=0; i<temp1.length;i++)
+//	    	temp1[i]=Math.abs(temp1[i]);
+		return temp1;
+	}
+	
 	public double getIm(int i) {
 	  assert((i>=0) && (i<points));
-	  return fi[i];
+	  return im[i];
 	}
 
 	public double getMod(int i) {
 	  assert((i>=0) && (i<points));
-	  return Math.sqrt(fr[i]*fr[i]+fi[i]*fi[i]);
+	  return Math.sqrt(re[i]*re[i]+im[i]*im[i]);
 	}
 
-	public double getFreq(int i) {
+	public double getFrequency(int i) {
 	  assert((i>=0) && (i<points));
 	  return (i*freq)/points;
 	}
@@ -83,12 +133,12 @@ public class Analysis {
 	  return points;
 	}
 
-	public double getBas(int i) {
+	public double getBasicFrequency(int i) {
 	  assert((i>=0) && (i<=index_res));
 	  return res[i];
 	}
 
-	public int getBasIndex() {
+	public int getBasicFrequencyCount() {
 	  return index_res;
 	}
 
@@ -98,34 +148,59 @@ public class Analysis {
 		return temp;
 //		return res;
 	}
+
+	public double[] getBasicFrequencyAmplitudeTable() {
+		double[] temp = new double[index_res];
+		temp = java.util.Arrays.copyOf(resAmplitude, index_res);
+		return temp;
+//		return resAmplitude;
+	}
 	
-	public void doHanning() {
-		for (int i=0; i<n; i++) {
-		  data[i]=0.5*(1-Math.cos(2*Math.PI*i/n))*data[i];
+	
+	public void setWindow(int w) {
+		window = w;
+	}
+	
+	public double[] doWindow(double[] t, int m) {		
+		switch (window) {		
+			case HANNING: return doHanning(t,m); 
+			case BLACKMANN: return doBlackman(t,m);
+			case GAUSS: return doGauss(t,m,0); 
+			default: return t;
 		}
+	
+	}
+	
+	public double[] doHanning(double[] t, int m) {
+		for (int i=0; i<m; i++) {
+		  t[i]=0.5*(1-Math.cos(2.0*Math.PI*i/m))*t[i];
+		}
+		return t;
 	}
 		
-	public void doBlackman() { //dla porównywania fazy
-		for (int i=0; i<n; i++) {
-		  data[i]=(0.42-0.5*Math.cos(2*Math.PI*i/n)+0.08*Math.cos(4*Math.PI*i/n))*data[i];
+	public double[] doBlackman(double[] t, int m) { //dla porównywania fazy
+		for (int i=0; i<m; i++) {
+		  t[i]=(0.42-0.5*Math.cos(2*Math.PI*i/m)+0.08*Math.cos(4.0*Math.PI*i/m))*t[i];
 		}
+		return t;
 	}
 	
-	public void doGauss(int k) {
-	 if (k==0) k=freq;
-		for (int i=0; i<n; i++) {
-			double temp = ((i-n-1)/2)/k;
-			data[i]=Math.exp(-temp*temp)*data[i];
+	public double[] doGauss(double[] t, int m, int k) {
+		if (k==0) k=freq;
+		for (int i=0; i<m; i++) {
+			double temp = ((i-m-1.0)/2.0)/k;
+			t[i]=Math.exp(-temp*temp)*t[i];
 		}
+		return t;
 	}
 
 	public void acorr(int l) {
 	// !!! speed up
 		int _n;
 		if (n>350) _n=350; else _n=n;
-		cafe.analysis.Autocorrelation.acorr(fr,fi,l,_n);
-		fr = cafe.analysis.Autocorrelation.get_fr();
-		fi = cafe.analysis.Autocorrelation.get_fi();		
+		cafe.analysis.Autocorrelation.acorr(re,im,l,_n);
+		re = cafe.analysis.Autocorrelation.get_fr();
+		im = cafe.analysis.Autocorrelation.get_fi();		
 	}
 
 	public double getABasFr(int _N) {
@@ -208,18 +283,21 @@ public class Analysis {
 	public void afm() {
 	
 		int i,j;
-	    double step;
 	    int next;
 	    double framebas,lastframebas;
 	    
 	    clear();
 	    for (i=0; i<n; i++)  
-	    	fr[i]=data[i];
+	    	re[i]=data[i];
+	    
+	    re = doWindow(re,n);
 
 	    acorr(n);
 
 	    bas=getABasFr(n);
-	    System.out.println("F0 = " + Double.toString(bas));    
+
+	    if (DEBUG)
+	    	System.out.println("F0 = " + Double.toString(freq/bas));    
 	    
 	    if (bas == 0) {
 	    	System.out.println("Basic Frequency not found");
@@ -228,19 +306,29 @@ public class Analysis {
 	    
 	    lastframebas = bas;
 	    
-	    res = new double[(int)Math.round(((n*2)/bas)+0.5)];
+//	    res = new double[(int)Math.round(((n*2)/bas)+0.5)];
+//	    resAmplitude = new double[(int)Math.round(((n*2)/bas)+0.5)];
+	    res = new double[(int)Math.round(n/(WINDOW*OVERLAP)+0.5)];
+	    resAmplitude = new double[(int)Math.round(n/(WINDOW*OVERLAP)+0.5)];
+	    
 	    index_res=0;
 
-	    step=2;
-	    next=(int)Math.round(bas*step);
+// raises level of error in F0 estimation     
+//	    next=(int)Math.round(bas*PERIODCOUNT);
+	    next=WINDOW;
 	    j=0;
 	  
 	    do {
 
 	    	for (i=0; i<next; i++)
-	    		fr[i]=data[i+j];
+	    		re[i]=data[i+j];
+	    	
+		    resAmplitude[index_res]=max(re,next);
+		    
+		    re = doWindow(re,next);
 
 	    	acorr(next);
+	    		    	
 	    	framebas=getABasFr(next);
 	    	
 	    	if ((framebas!=0) && (Math.abs(freq/framebas-freq/lastframebas)<25)
@@ -249,119 +337,74 @@ public class Analysis {
 	    		res[index_res]=freq/framebas;
 	    		lastframebas=framebas;
 	    	} else {
-	    		lastframebas=bas;
-	    		res[index_res]=0;
+//		    	lastframebas=bas;
+		    	res[index_res]=freq/lastframebas;
+//		    	res[index_res]=0;
 	    	}
 
 	    	index_res++;
 
-	    	j=(int)Math.round(bas*(index_res));
+// raises level of error in F0 estimation 
+//	    	j=(int)Math.round(bas*(index_res));
+//		    j=(int)Math.round(((bas*PERIODCOUNT*OVERLAP)*index_res));
+	    	
+		    j=(int)Math.round(((WINDOW*OVERLAP)*index_res));
 
 	    }
 	    while (j+next<n);
 
+		if (DEBUG)
 	    for (i=0; i<index_res; i++) { 
 			System.out.println(Integer.toString(i)+" "+Double.toString(res[i]));	    	
 	    }	    	  
 	}
 	
 	
-	public void afm2() {
-		
-		int i,j;
-	    double krok;
-	    int next;
-	    double framebas,lastframebas;
-	    
-	    clear();
-	    for (i=0; i<n; i++)  
-	    	fr[i]=data[i];
-
-	    acorr(n);
-
-	    
-//	    bas=getABasFr(n);
-//	    System.out.println(Double.toString(bas));    
-//	    
-//	    if (bas == 0) {
-//	    	System.out.println("Basic Frequency not found");
-//	    	return;
-//	    }
-//	    
-//	    lastframebas = bas;
-//	    
-//	    res = new double[(int)Math.round(((n*2)/bas)+0.5)];
-//	    index_res=0;
-//
-//	    krok=2;
-//	    next=(int)Math.round(bas*krok);
-//	    j=0;
-//	  
-//	    do {
-//
-//	    	for (i=0; i<next; i++)
-//	    		fr[i]=data[i+j];
-//
-//	    	acorr(next);
-//	    	framebas=getABasFr(next);
-//	    	
-//	    	if ((framebas!=0) && (Math.abs(freq/framebas-freq/lastframebas)<50)
-//	    			/* && (Math.abs(freq/framebas-freq/bas)<25)*/ ) {
-//	    		
-//	    		res[index_res]=freq/framebas;
-//	    		lastframebas=framebas;
-//	    	} else {
-//	    		lastframebas=bas;
-//	    		res[index_res]=0;
-//	    	}
-//
-//	    	index_res++;
-//
-//	    	j=(int)Math.round(bas*(index_res));
-//
-//	    }
-//	    while (j+next<n);
-//
-//	    for (i=0; i<index_res; i++) { 
-//			System.out.println(Integer.toString(i)+" "+Double.toString(res[i]));	    	
-//	    }	   	   
-	    
-	}
-	
-	
-	
 	public void ffm() {
 		
 		int i,j;
-	    double krok;
 	    int next;
 	    double framebas,lastframebas;
 	
 	    clear();
 	    for (i=0; i<n; i++) 
-	    	fr[i]=data[i];
+	    	re[i]=data[i];
+	    
+	    re = doWindow(re,n);
+
+	    fft();
+
+	    for (i=0; i<getPoints(); i++) {
+	      re[i]=getMod(i);
+	      im[i]=re[i];
+	    }
 	    
 	    fft();
 
 	    for (i=0; i<getPoints(); i++) {
-	      fr[i]=getMod(i);
-	      fi[i]=fr[i];
-	    }
-	    
-	    fft();
+		      im[i]=getMod(i);
+		}
 	    
 	    bas=getABasFr(getPoints()/2);
 	    
+	    if (DEBUG)
+	    	System.out.println("F0 = " + Double.toString(freq/bas));    
+
 	    if (bas==0) {
 	    	System.out.println("Basic Frequency not found");
 	    	return;
 	    }
 	    
 	    lastframebas=bas;
-	    res = new double[(int)Math.round(((n*2)/bas)+0.5)];
+//	    res = new double[(int)Math.round(((n*2)/bas)+0.5)+1000];
+//	    resAmplitude = new double[(int)Math.round(((n*2)/bas)+0.5)+1000];
+	    res = new double[(int)Math.round(n/(WINDOW*OVERLAP)+0.5)];
+	    resAmplitude = new double[(int)Math.round(n/(WINDOW*OVERLAP)+0.5)];
 	    index_res=0;
-	    krok=2;
-	    next=(int)Math.round(bas*krok);
+	    
+// raises level of error in F0 estimation 	    
+//	    next=(int)Math.round(bas*PERIODCOUNT);
+	    next=WINDOW;
    
 //	    lnN:=Round(Log2(next)+1);
 		double log2 = Math.log(next)/Math.log(2);
@@ -369,31 +412,42 @@ public class Analysis {
 		
 		points=(int)Math.round(Math.pow(2.0,ln_n));
 
-		fr = new double[points+1];
-		fi = new double[points+1];
+		re = new double[points+1];
+		im = new double[points+1];
+    	double[] in = new double[points+1];
 		clear();
 
 		j=0;
 		
 		do {
 
-		    for (i=0;i<next;i++)
-		    	fr[i]=data[i+j];
-	
+		    for (i=0;i<next;i++) {
+		    	re[i]=data[i+j];
+		    }
+		    resAmplitude[index_res]=max(re,next);
+		    
+		    re = doWindow(re,next);
+		    
 		    fft();
 		    
 		    for (i=0;i<getPoints();i++) {
-		    	if (getFreq(i)>40) {
-		    		fr[i]=getMod(i);
-		    		fi[i]=fr[i];
+		    	if (getFrequency(i)>40) {
+		    		re[i]=getMod(i);
+		    		im[i]=re[i];
+			    	in[i]=re[i];
 		    	} else {
-		    		fr[i]=0;
-		    		fi[i]=0;
+		    		re[i]=0;
+		    		im[i]=0;
+			    	in[i]=0;
 		    	}
 		    }
 		    
 		    fft();
-	
+
+		    for (i=0; i<getPoints(); i++) {
+			      im[i]=getMod(i);
+			}		    
+		    
 		    framebas=getABasFr(getPoints()/2);
 
 	    	if ((framebas!=0) && (Math.abs(freq/framebas-freq/lastframebas)<25) 
@@ -402,27 +456,69 @@ public class Analysis {
 		    	res[index_res]=freq/framebas;
 		    	lastframebas=framebas;
 		    } else {
-		    	lastframebas=bas;
-		    	res[index_res]=0;
+//		    	lastframebas=bas;
+		    	res[index_res]=freq/lastframebas;
+//		    	res[index_res]=0;
 		    }
 
 		    index_res++;
 
-		    j=(int)Math.round(bas*(index_res));
+// raises level of error in F0 estimation 
+//	    	j=(int)Math.round(bas*(index_res));
+//		    j=(int)Math.round(((bas*PERIODCOUNT*OVERLAP)*index_res));		    
+
+		    j=(int)Math.round(((WINDOW*OVERLAP)*index_res));
 		    
 		}
 		while (j+next<n);
-		
-	    for (i=0; i<index_res; i++) { 
-			System.out.println(Integer.toString(i)+" "+Double.toString(res[i]));	    	
-	    }
+	
+		if (DEBUG)
+			for (i=0; i<index_res; i++) { 
+				System.out.println(Integer.toString(i)+" "+Double.toString(res[i]));	    	
+			}
 		
 	}	
+	
+	private double max(double[] t, int n) {
+		double max = t[0];
+		for (int i=1;i<n; i++) 
+			if (t[i]>max) max=t[i];
+		return max;
+	}
 
+	public double getFundamentalFrequencyAmplitude(double frequency, double[] in, int ln_n) {
+
+		double[] temp = new double[in.length];
+		cafe.analysis.FFT.fft(in,temp,ln_n,-1);
+		int i = (int)Math.floor(freq/frequency+0.5);
+		return cafe.analysis.FFT.get_re()[i];		
+	}	
+	
 	public void fpm() {
 		
+		int i,j=0,k=0,next=WINDOW;
+		double[] temp;
+		double sum;
+		
+		phaseResult = new double[(int)Math.round((index/(next*OVERLAP))+0.5)+100];
+		do {
+			temp = getTheta(j,next);
+			sum=0;
+			for (i=0;i<temp.length;i++)
+				sum+=temp[i];
+			phaseResult[k++]=sum;
+			j+=(int)Math.round(next*OVERLAP+0.5);
+			if (j+next>=index) next=index-j;
+		}		
+		while (next>0);
+		
+		if (DEBUG)
+		    for (i=0; i<phaseResult.length; i++) { 
+				System.out.println(Integer.toString(i)+" "+Double.toString(phaseResult[i]));	    	
+		    }
+		
 	}
-	
+		
 	public CoeffPack coeff() {
 	
 		int i;
