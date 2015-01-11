@@ -3,6 +3,7 @@ package cafe.gui;
 import java.awt.Color;
 
 import javax.swing.JFrame;
+import javax.swing.JPanel;
 
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
@@ -17,18 +18,18 @@ import org.jfree.data.xy.XYSeriesCollection;
 //import org.jfree.util.Rotation;
 
 
-public class ChartResultWindow extends JFrame {
+public class ChartResultWindow {
 
   private static final long serialVersionUID = 1L;
-
+  private ChartPanel chartPanel;
   public ChartResultWindow(String applicationTitle) {
-        super(applicationTitle);        
+      // super(applicationTitle);        
     }
   
 	public void open(double[] table, String chartTitle, String xTitle, String yTitle) {
 		createContents(table, chartTitle, xTitle, yTitle);
-        pack();
-        setVisible(true);
+      //  pack();
+       // setVisible(true);
 		
 	}
 
@@ -37,16 +38,25 @@ public class ChartResultWindow extends JFrame {
         final XYDataset  dataset = createDataset(table);        
         // based on the dataset we create the chart
         JFreeChart chart = createChart(dataset, chartTitle,  xTitle, yTitle);
+        
         // we put the chart into a panel
-        ChartPanel chartPanel = new ChartPanel(chart);
+       chartPanel = new ChartPanel(chart);
+       //chartPanel.setDoubleBuffered(true);
         // default size
-        chartPanel.setPreferredSize(new java.awt.Dimension(800, 600));
+      //  chartPanel.setPreferredSize(new java.awt.Dimension(800, 600));
         // add it to our application
-        setContentPane(chartPanel);
+    //    setContentPane(chartPanel);
+        //add(chartPanel);
+    //   setSize(800,600);
+       chartPanel.setSize(100,100);
 				
 	}	
 
-    
+    public ChartPanel GiveChartPanel(){
+    	//chartPanel.setDoubleBuffered(true);
+    	chartPanel.revalidate();
+    	return chartPanel;
+    }
     
 /** * Creates a sample dataset */
 
@@ -112,10 +122,6 @@ public class ChartResultWindow extends JFrame {
     }
 
 
-		   public static void main(String[] args) {
-			   ChartResultWindow demo = new ChartResultWindow("Comparison");
-			   demo.open(new double[]{4,1,3,2,2.5,2.25},"a","x","y");
-		      }
 		      
 }
 

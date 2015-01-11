@@ -6,18 +6,28 @@ import cafe.analysis.FundamentalFrequencyAutocorrelation;
 import cafe.analysis.FundamentalFrequencyCepstrum;
 import cafe.analysis.WindowFunction;
 
-public class ComputeBasicFrequency {
+public class ComputeFundamentalFrequency {
 
 	private FundamentalFrequency ff;
     private int bps;
     private int n;
 	
-	public ComputeBasicFrequency(int np, int s) {
+	public ComputeFundamentalFrequency(int np, int s, char f,boolean autocorr) {
 		
 		bps=s;
 		n=np;
+		if(autocorr){
 		ff = new FundamentalFrequencyAutocorrelation(np, s);
-//		ff = new FundamentalFrequencyCepstrum(np, s);		
+		} else{
+	ff = new FundamentalFrequencyCepstrum(np, s);	
+		}
+		switch(f){
+		case 'h': ff.setWindow(WindowFunction.HANNING); break;
+		case 'r':ff.setWindow(WindowFunction.RECTANGLE); break;
+		case 'b':ff.setWindow(WindowFunction.BLACKMANN); break;
+		case 'g':ff.setWindow(WindowFunction.GAUSS); break;
+		default: ff.setWindow(WindowFunction.RECTANGLE); 
+		}
 	}
 	
 	public void copy(double x) {
@@ -25,8 +35,7 @@ public class ComputeBasicFrequency {
 	}
 	
 	public void transform() {
-
-		ff.setWindow(WindowFunction.HANNING);
+		
 		ff.calculate();
 						
 		AudioFeature audioFeature = new AudioFeature(ff);

@@ -1,5 +1,7 @@
 package cafe.gui;
 
+import java.awt.BorderLayout;
+import java.awt.Panel;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -24,10 +26,13 @@ import javax.sound.sampled.Clip;
 import javax.sound.sampled.DataLine;
 import javax.sound.sampled.LineUnavailableException;
 import javax.sound.sampled.TargetDataLine;
+import javax.swing.JTabbedPane;
 
 import org.eclipse.jface.resource.FontDescriptor;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Canvas;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
@@ -36,7 +41,10 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.FileDialog;
+import org.eclipse.swt.widgets.TabFolder;
+import org.eclipse.swt.widgets.TabItem;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.awt.SWT_AWT;
 import org.eclipse.swt.events.PaintEvent;
 import org.eclipse.swt.events.PaintListener;
 import org.eclipse.swt.events.SelectionAdapter;
@@ -46,10 +54,12 @@ import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
+import org.eclipse.swt.layout.FillLayout;
+import org.eclipse.swt.layout.RowLayout;
 
 import sun.audio.AudioPlayer;
 import sun.audio.AudioStream;
-import cafe.application.ComputeBasicFrequency;
+import cafe.application.ComputeFundamentalFrequency;
 import cafe.application.ComputePhaseSpectrum;
 import cafe.audio.DrawWaveform;
 import cafe.audio.WavFile;
@@ -63,8 +73,13 @@ public class MainWindow {
 	private String fileName;
 	private Label drawingLabel;
 	private DrawWaveform dw;
-	private static int MENU_HEIGHT = 60;
-
+	private static int MENU_HEIGHT = 120;
+	private TabFolder tabFolder;
+	private TabItem FundamentalFrequency;
+	private TabItem Amplitude;
+	private TabItem Phase;
+    private char windowType;
+    private boolean autocorr;
 	/**
 	 * Open the window.
 	 */
@@ -96,8 +111,15 @@ public class MainWindow {
 
 // needed here		
  		shell = new Shell(display, SWT.SHELL_TRIM | SWT.DOUBLE_BUFFERED);
-		drawingLabel=new Label(shell, SWT.NORMAL);
-		 		
+ 		 tabFolder = new TabFolder(shell, SWT.BORDER);
+ 	      TabItem tabItem = new TabItem(tabFolder, SWT.NULL);
+ 	      tabItem.setText("Sound graph");
+ 	     FundamentalFrequency = null;
+ 	    Amplitude = null;
+ 	   Phase = null;
+		drawingLabel=new Label(tabFolder, SWT.NORMAL);
+		tabItem.setControl(drawingLabel);
+		 tabFolder.setSize(800, 500);
 		shell.setLocation(400, 200);
 		shell.setSize(800, 600);
 		shell.setText("CAFE Application");
@@ -116,10 +138,12 @@ public class MainWindow {
 			public void handleEvent (Event e) {
 				if(dw != null){
 					int width=shell.getSize().x;
-					int height=shell.getSize().y-MENU_HEIGHT;
+					int absHeight=shell.getSize().y;
+					int height=absHeight-MENU_HEIGHT;
 					drawingLabel.setSize(width,height);
+					tabFolder.setSize(width,height);
 					dw.redraw(width, height);
-					drawingLabel.setLocation(0, 0);
+					drawingLabel.setLocation(0, 60);
 					drawingLabel.setImage(dw.getImage());
 				}
 			}
@@ -149,7 +173,8 @@ public class MainWindow {
 		        if (fileName != null) {
 
 		    		int width = shell.getSize().x;
-		    		int height = shell.getSize().y-MENU_HEIGHT;
+		    		int absHeight=shell.getSize().y;
+		    		int height = absHeight-MENU_HEIGHT;
 /* 
  * 	Drawing on canvas		    		
 	    			DrawWaveform dw = new DrawWaveform(width,height,drawingLabel.getDisplay(),fileName);
@@ -161,7 +186,8 @@ public class MainWindow {
 */
     				    				    		
 		    		drawingLabel.setSize(width,height);
-		    		drawingLabel.setLocation(0, 0);
+		    		tabFolder.setSize(width,height);
+		    		drawingLabel.setLocation(0, 40);
 		    		dw = new DrawWaveform(width,height,drawingLabel.getDisplay(),fileName);
 		    		dw.draw();
 		    		drawingLabel.setImage(dw.getImage());
@@ -178,11 +204,63 @@ public class MainWindow {
 				System.exit(0);
 			}
 		});
+		
+		/*MenuItem mntmComputing = new MenuItem(menu,SWT.CASCADE);
+		Menu menu_2 = new Menu(mntmComputing);
+		mntmComputing.setText("Computing");
+		mntmComputing.setMenu(menu_2);*/
 		MenuItem mntmCompute = new MenuItem(menu, SWT.NONE);
 		mntmCompute.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
+				final Shell dialog = new Shell(shell, SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL);
+				dialog.setText("Settings");
+				dialog.setSize(440,280);
+		        Rectangle shellBounds = shell.getBounds();
+		        Point dialogSize = dialog.getSize();
+		        dialog.setLocation(
+				          shellBounds.x + (shellBounds.width - dialogSize.x) / 2,
+				          shellBounds.y + (shellBounds.height - dialogSize.y) / 2);
 
+		        dialog.setLayout(new FillLayout());
+		        Composite composite = new Composite(dialog, SWT.NULL);
+		        composite.setLayout(new RowLayout());
+		        Button hButton = new Button(composite, SWT.RADIO);
+		        hButton.setText("HANNING.");
+		        Button rButton = new Button(composite, SWT.RADIO);
+		        rButton.setText("RECTANGLE.");
+		        Button bButton = new Button(composite, SWT.RADIO);
+		        bButton.setText("BLACKMANN.");
+		        Button gButton = new Button(composite, SWT.RADIO);
+		        gButton.setText("GAUSS.");
+
+		    
+		       Button okButton=new Button(composite,SWT.NORMAL);
+		       okButton.setText("OK");
+		       okButton.setSize(80,25);
+
+				okButton.setLocation(50,150);
+		       okButton.addSelectionListener(new SelectionAdapter() {
+					public void widgetSelected(SelectionEvent e){
+		       if(hButton.getSelection())
+		    	   windowType='h';
+		       if(rButton.getSelection())
+		    	   windowType='r';
+		       if(bButton.getSelection())
+		    	   windowType='b';
+		       if(gButton.getSelection())
+		    	   windowType='g';
+					
+		       dialog.close();
+					}
+		       });
+		       dialog.open();
+		       while(!dialog.isDisposed()){
+					if (!display.readAndDispatch()) {
+						display.sleep();
+					}
+		       }
+		       System.out.println(windowType);
 			System.out.println("Compute:");
 			if (fileName != null) {
 				try {
@@ -202,7 +280,7 @@ public class MainWindow {
 //					start = 4000-2;
 //					finish = 6000-2;
 
-					ComputeBasicFrequency cbf = new ComputeBasicFrequency(finish-start,samplesPerSec);
+					ComputeFundamentalFrequency cbf = new ComputeFundamentalFrequency(finish-start,samplesPerSec,windowType,autocorr);
 					ComputePhaseSpectrum cph = new ComputePhaseSpectrum(finish-start,samplesPerSec);
 
 					System.out.println("	- copy " + Integer.toString(finish-start) +" bytes");
@@ -218,16 +296,40 @@ public class MainWindow {
 					cbf.transform();
 // time consuming
 					cph.transform();
-										
+					if(FundamentalFrequency==null)
+					 FundamentalFrequency = new TabItem(tabFolder, SWT.NULL);
+					if(Amplitude==null)
+				 	    Amplitude = new TabItem(tabFolder, SWT.NULL);
+					if(Phase==null)
+				 	   Phase = new TabItem(tabFolder, SWT.NULL);	
+					FundamentalFrequency.setText("Fundamental Frequency");
 					ChartResultWindow resultWindow = new ChartResultWindow("Chart");
-					resultWindow.open(cbf.getFundamentalFrequencyTable(),"Fundamental Frequency", "t", "f [Hz]" );
-					
+					Composite swtAwtComponent = new Composite(tabFolder, SWT.EMBEDDED);
+				    java.awt.Frame frame = SWT_AWT.new_Frame( swtAwtComponent );
+				resultWindow.open(cbf.getFundamentalFrequencyTable(),"Fundamental Frequency", "t", "f [Hz]" );
+					frame.add(resultWindow.GiveChartPanel());			
+					FundamentalFrequency.setControl(swtAwtComponent);
+					   swtAwtComponent.redraw();
+					tabFolder.setSelection(tabFolder.indexOf(FundamentalFrequency));
 					ChartResultWindow resultWindow1 = new ChartResultWindow("Chart");
-					resultWindow1.open(cbf.getFundamentalFrequencyAmplitudeTable(),"Amplitude", "t","A" );
-
+				resultWindow1.open(cbf.getFundamentalFrequencyAmplitudeTable(),"Amplitude", "t","A" );
+				Composite swtAwtComponent2 = new Composite(tabFolder, SWT.EMBEDDED);
+			    java.awt.Frame frame2 = SWT_AWT.new_Frame( swtAwtComponent2 );
+			    frame2.add(resultWindow1.GiveChartPanel());
+			    Amplitude.setControl(swtAwtComponent2);
+			    Amplitude.setText("Amplitude");
+			    tabFolder.setSelection(tabFolder.indexOf(Amplitude));
 					ChartResultWindow resultWindow2 = new ChartResultWindow("Chart");
-					resultWindow2.open(cph.getPhaseTable(),"Phase Spectrum", "f","Theta [rad]" );
-					
+			   	resultWindow2.open(cph.getPhaseTable(),"Phase Spectrum", "f","Theta [rad]" );
+				Composite swtAwtComponent3 = new Composite(tabFolder, SWT.EMBEDDED);
+			    java.awt.Frame frame3 = SWT_AWT.new_Frame( swtAwtComponent3 );
+			    frame3.add(resultWindow2.GiveChartPanel());
+			    Phase.setControl(swtAwtComponent3);
+			    Phase.setText("Phase");
+			    tabFolder.setSelection(tabFolder.indexOf(Phase));
+			 
+			    swtAwtComponent2.redraw();
+			    swtAwtComponent3.redraw();
 				} catch (Exception exc) {
 					System.err.println(exc);
 					exc.printStackTrace();
@@ -236,11 +338,28 @@ public class MainWindow {
 		}
 		});
 		mntmCompute.setText("Compute ");
+		/*MenuItem mntmSettings = new MenuItem(menu_2, SWT.NONE);
+		mntmSettings.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				final Shell dialog = new Shell(shell, SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL);
+				dialog.setText("Settings");
+				dialog.setSize(340,280);
+		        Rectangle shellBounds = shell.getBounds();
+		        Point dialogSize = dialog.getSize();
+		        dialog.setLocation(
+				          shellBounds.x + (shellBounds.width - dialogSize.x) / 2,
+				          shellBounds.y + (shellBounds.height - dialogSize.y) / 2);
+		        dialog.open();
+		}
+		
+		});
+		mntmSettings.setText("Settings");*/
 		MenuItem mntmMusic = new MenuItem(menu, SWT.CASCADE);
 		mntmMusic.setText("&Sound");
-		Menu menu_2 = new Menu(mntmMusic);
-		mntmMusic.setMenu(menu_2);
-		MenuItem mntmPlay = new MenuItem(menu_2, SWT.NONE);
+		Menu menu_3 = new Menu(mntmMusic);
+		mntmMusic.setMenu(menu_3);
+		MenuItem mntmPlay = new MenuItem(menu_3, SWT.NONE);
 		mntmPlay.setText("&Play");
 		mntmPlay.addSelectionListener(new SelectionAdapter() {
 			public void widgetSelected(SelectionEvent e) {
@@ -256,7 +375,7 @@ public class MainWindow {
 				}
 			}
 		});
-		MenuItem mntmRecord = new MenuItem(menu_2, SWT.NONE);
+		MenuItem mntmRecord = new MenuItem(menu_3, SWT.NONE);
 		mntmRecord.setText("&Record");
 		mntmRecord.addSelectionListener(new SelectionAdapter() {
 			public void widgetSelected(SelectionEvent e) {
