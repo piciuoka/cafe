@@ -48,13 +48,13 @@ public class ChartResultWindow {
     //    setContentPane(chartPanel);
         //add(chartPanel);
     //   setSize(800,600);
-       chartPanel.setSize(100,100);
+     //  chartPanel.setSize(100,100);
 				
 	}	
 
     public ChartPanel GiveChartPanel(){
-    	//chartPanel.setDoubleBuffered(true);
-    	chartPanel.revalidate();
+    	chartPanel.setDoubleBuffered(true);
+    	
     	return chartPanel;
     }
     

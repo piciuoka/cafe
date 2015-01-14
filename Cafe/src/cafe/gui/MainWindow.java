@@ -302,14 +302,15 @@ public class MainWindow {
 				 	    Amplitude = new TabItem(tabFolder, SWT.NULL);
 					if(Phase==null)
 				 	   Phase = new TabItem(tabFolder, SWT.NULL);	
-					FundamentalFrequency.setText("Fundamental Frequency");
+					
 					ChartResultWindow resultWindow = new ChartResultWindow("Chart");
 					Composite swtAwtComponent = new Composite(tabFolder, SWT.EMBEDDED);
 				    java.awt.Frame frame = SWT_AWT.new_Frame( swtAwtComponent );
 				resultWindow.open(cbf.getFundamentalFrequencyTable(),"Fundamental Frequency", "t", "f [Hz]" );
-					frame.add(resultWindow.GiveChartPanel());			
+					frame.add(resultWindow.GiveChartPanel());
+					FundamentalFrequency.setText("Fundamental Frequency");			
 					FundamentalFrequency.setControl(swtAwtComponent);
-					   swtAwtComponent.redraw();
+					 
 					tabFolder.setSelection(tabFolder.indexOf(FundamentalFrequency));
 					ChartResultWindow resultWindow1 = new ChartResultWindow("Chart");
 				resultWindow1.open(cbf.getFundamentalFrequencyAmplitudeTable(),"Amplitude", "t","A" );
@@ -327,9 +328,9 @@ public class MainWindow {
 			    Phase.setControl(swtAwtComponent3);
 			    Phase.setText("Phase");
 			    tabFolder.setSelection(tabFolder.indexOf(Phase));
-			 
-			    swtAwtComponent2.redraw();
-			    swtAwtComponent3.redraw();
+			  //  swtAwtComponent.redraw();
+			  //  swtAwtComponent2.redraw();
+			  //  swtAwtComponent3.redraw();
 				} catch (Exception exc) {
 					System.err.println(exc);
 					exc.printStackTrace();
@@ -446,7 +447,7 @@ public class MainWindow {
 					btnRecord.setEnabled(true);
 					btnStop.setEnabled(false);
 					btnSave.setEnabled(true);
-					btnPlay.setEnabled(true);
+					btnPlay.setEnabled(true); 
 					line.stop();
 					line.close();
 					//mntmOpen.notifyListeners(SWT.Selection, new Event());

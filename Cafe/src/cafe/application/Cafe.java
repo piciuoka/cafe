@@ -10,6 +10,9 @@ public class Cafe {
 	 */
 	public static void main(String[] args) {
 		try {
+			System.setProperty("sun.java2d.d3d",        "false");
+			System.setProperty("sun.java2d.ddoffscreen","false");
+			System.setProperty("sun.java2d.noddraw",    "true");
 			MainWindow window = new MainWindow();
 			window.open();
 		} catch (Exception e) {
