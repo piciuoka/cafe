@@ -1,6 +1,7 @@
 package cafe.gui;
 
 import java.awt.BorderLayout;
+import java.awt.GridLayout;
 import java.awt.Panel;
 import java.io.File;
 import java.io.FileInputStream;
@@ -55,6 +56,7 @@ import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.FillLayout;
+import org.eclipse.swt.layout.RowData;
 import org.eclipse.swt.layout.RowLayout;
 
 import sun.audio.AudioPlayer;
@@ -215,7 +217,7 @@ public class MainWindow {
 			public void widgetSelected(SelectionEvent e) {
 				final Shell dialog = new Shell(shell, SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL);
 				dialog.setText("Settings");
-				dialog.setSize(440,280);
+				dialog.setSize(440,200);
 		        Rectangle shellBounds = shell.getBounds();
 		        Point dialogSize = dialog.getSize();
 		        dialog.setLocation(
@@ -225,19 +227,28 @@ public class MainWindow {
 		        dialog.setLayout(new FillLayout());
 		        Composite composite = new Composite(dialog, SWT.NULL);
 		        composite.setLayout(new RowLayout());
+		        Label infLabel= new Label(composite, SWT.NORMAL);
+		        infLabel.setText("Choose windowing type:\n");
+		        infLabel.setLayoutData(new RowData(440,30));
 		        Button hButton = new Button(composite, SWT.RADIO);
-		        hButton.setText("HANNING.");
+		        hButton.setLayoutData(new RowData(100,25));
+		        hButton.setText("HANNING");
 		        Button rButton = new Button(composite, SWT.RADIO);
-		        rButton.setText("RECTANGLE.");
+		        rButton.setLayoutData(new RowData(100,25));
+		        rButton.setText("RECTANGLE");
 		        Button bButton = new Button(composite, SWT.RADIO);
-		        bButton.setText("BLACKMANN.");
+		        bButton.setLayoutData(new RowData(100,25));
+		        bButton.setText("BLACKMANN");
 		        Button gButton = new Button(composite, SWT.RADIO);
-		        gButton.setText("GAUSS.");
-
-		    
+		        gButton.setText("GAUSS");
+		        gButton.setLayoutData(new RowData(100,25));
+		        Button aButton = new Button(composite, SWT.CHECK);
+		        aButton.setText("Set autocorrelation");
+		        aButton.setLayoutData(new RowData(400,25));
+		        
 		       Button okButton=new Button(composite,SWT.NORMAL);
 		       okButton.setText("OK");
-		       okButton.setSize(80,25);
+		       okButton.setLayoutData(new RowData(80,25));
 
 				okButton.setLocation(50,150);
 		       okButton.addSelectionListener(new SelectionAdapter() {
@@ -250,7 +261,12 @@ public class MainWindow {
 		    	   windowType='b';
 		       if(gButton.getSelection())
 		    	   windowType='g';
-					
+			   if(aButton.getSelection()){
+				   autocorr=true;
+			   }
+			     else{
+			    	 autocorr=false;
+			     }
 		       dialog.close();
 					}
 		       });
@@ -260,7 +276,7 @@ public class MainWindow {
 						display.sleep();
 					}
 		       }
-		       System.out.println(windowType);
+		       System.out.println(windowType+" "+autocorr);
 			System.out.println("Compute:");
 			if (fileName != null) {
 				try {
