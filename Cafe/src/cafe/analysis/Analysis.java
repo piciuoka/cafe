@@ -75,7 +75,7 @@ public class Analysis {
  	    assert((count>=0) && (_begin+count<n));
 
  	    double log2 = Math.log(count)/Math.log(2);
-		int lnn = (int)Math.round(log2+1.0);
+		int lnn = (int)Math.round(log2+0.5);
 		int npoints=(int)Math.round(Math.pow(2.0,lnn));
 
 	    for (int i=0;i<count;i++) {
@@ -357,7 +357,7 @@ public class Analysis {
 	    clear();
 	    
 		double log2 = Math.log(n)/Math.log(2);
-		int ln_n = (int)Math.round(log2+1);		
+		int ln_n = (int)Math.round(log2+0.5);		
 		int count=(int)Math.round(Math.pow(2.0,ln_n));
 
 	    for (i=0; i<n; i++) 
@@ -400,7 +400,7 @@ public class Analysis {
    
 //	    lnN:=Round(Log2(next)+1);
 		log2 = Math.log(next)/Math.log(2);
-		ln_n = (int)Math.round(log2+1);		
+		ln_n = (int)Math.round(log2+0.5);		
 		count=(int)Math.round(Math.pow(2.0,ln_n));
 
 //		re = new double[points+1];

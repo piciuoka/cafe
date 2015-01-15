@@ -225,13 +225,13 @@ public class MainWindow {
 		        dialog.setLayout(new FillLayout());
 		        Composite composite = new Composite(dialog, SWT.NULL);
 		        composite.setLayout(new RowLayout());
-		        Button hButton = new Button(composite, SWT.RADIO);
+		        final Button hButton = new Button(composite, SWT.RADIO);
 		        hButton.setText("HANNING.");
-		        Button rButton = new Button(composite, SWT.RADIO);
+		        final Button rButton = new Button(composite, SWT.RADIO);
 		        rButton.setText("RECTANGLE.");
-		        Button bButton = new Button(composite, SWT.RADIO);
+		        final Button bButton = new Button(composite, SWT.RADIO);
 		        bButton.setText("BLACKMANN.");
-		        Button gButton = new Button(composite, SWT.RADIO);
+		        final Button gButton = new Button(composite, SWT.RADIO);
 		        gButton.setText("GAUSS.");
 
 		    
@@ -239,19 +239,19 @@ public class MainWindow {
 		       okButton.setText("OK");
 		       okButton.setSize(80,25);
 
-				okButton.setLocation(50,150);
+		       okButton.setLocation(50,150);
 		       okButton.addSelectionListener(new SelectionAdapter() {
-					public void widgetSelected(SelectionEvent e){
-		       if(hButton.getSelection())
-		    	   windowType='h';
-		       if(rButton.getSelection())
-		    	   windowType='r';
-		       if(bButton.getSelection())
-		    	   windowType='b';
-		       if(gButton.getSelection())
-		    	   windowType='g';
+		    	   public void widgetSelected(SelectionEvent e){
+		    		   if(hButton.getSelection())
+		    			   windowType='h';
+		    		   if(rButton.getSelection())
+		    			   windowType='r';
+		    		   if(bButton.getSelection())
+		    			   windowType='b';
+		    		   if(gButton.getSelection())
+		    			   windowType='g';
 					
-		       dialog.close();
+		    		   dialog.close();
 					}
 		       });
 		       dialog.open();
