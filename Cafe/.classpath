@@ -26,5 +26,6 @@
 		</attributes>
 	</classpathentry>
 	<classpathentry kind="lib" path="libs/jcommon-1.0.23.jar"/>
+	<classpathentry kind="lib" path="libs/javastat_beta1.4.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

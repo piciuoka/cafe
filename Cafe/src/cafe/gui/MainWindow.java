@@ -1,6 +1,7 @@
 package cafe.gui;
 
 import java.awt.BorderLayout;
+import java.awt.GridLayout;
 import java.awt.Panel;
 import java.io.File;
 import java.io.FileInputStream;
@@ -55,6 +56,7 @@ import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.FillLayout;
+import org.eclipse.swt.layout.RowData;
 import org.eclipse.swt.layout.RowLayout;
 
 import sun.audio.AudioPlayer;
@@ -215,7 +217,7 @@ public class MainWindow {
 			public void widgetSelected(SelectionEvent e) {
 				final Shell dialog = new Shell(shell, SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL);
 				dialog.setText("Settings");
-				dialog.setSize(440,280);
+				dialog.setSize(440,200);
 		        Rectangle shellBounds = shell.getBounds();
 		        Point dialogSize = dialog.getSize();
 		        dialog.setLocation(
@@ -225,19 +227,28 @@ public class MainWindow {
 		        dialog.setLayout(new FillLayout());
 		        Composite composite = new Composite(dialog, SWT.NULL);
 		        composite.setLayout(new RowLayout());
+		        Label infLabel= new Label(composite, SWT.NORMAL);
+		        infLabel.setText("Choose windowing type:\n");
+		        infLabel.setLayoutData(new RowData(440,30));
 		        final Button hButton = new Button(composite, SWT.RADIO);
-		        hButton.setText("HANNING.");
+		        hButton.setLayoutData(new RowData(100,25));
+		        hButton.setText("HANNING");
 		        final Button rButton = new Button(composite, SWT.RADIO);
-		        rButton.setText("RECTANGLE.");
+		        rButton.setLayoutData(new RowData(100,25));
+		        rButton.setText("RECTANGLE");
 		        final Button bButton = new Button(composite, SWT.RADIO);
-		        bButton.setText("BLACKMANN.");
+		        bButton.setLayoutData(new RowData(100,25));
+		        bButton.setText("BLACKMANN");
 		        final Button gButton = new Button(composite, SWT.RADIO);
-		        gButton.setText("GAUSS.");
-
-		    
+		        gButton.setText("GAUSS");
+		        gButton.setLayoutData(new RowData(100,25));
+		        final Button aButton = new Button(composite, SWT.CHECK);
+		        aButton.setText("Set autocorrelation");
+		        aButton.setLayoutData(new RowData(400,25));
+		        
 		       Button okButton=new Button(composite,SWT.NORMAL);
 		       okButton.setText("OK");
-		       okButton.setSize(80,25);
+		       okButton.setLayoutData(new RowData(80,25));
 
 		       okButton.setLocation(50,150);
 		       okButton.addSelectionListener(new SelectionAdapter() {
@@ -250,7 +261,12 @@ public class MainWindow {
 		    			   windowType='b';
 		    		   if(gButton.getSelection())
 		    			   windowType='g';
-					
+			  		   if(aButton.getSelection()){
+				   		   autocorr=true;
+			   	  }
+			      else{
+			    	 autocorr=false;
+			     }
 		    		   dialog.close();
 					}
 		       });
@@ -260,7 +276,7 @@ public class MainWindow {
 						display.sleep();
 					}
 		       }
-		       System.out.println(windowType);
+		       System.out.println(windowType+" "+autocorr);
 			System.out.println("Compute:");
 			if (fileName != null) {
 				try {
@@ -302,14 +318,15 @@ public class MainWindow {
 				 	    Amplitude = new TabItem(tabFolder, SWT.NULL);
 					if(Phase==null)
 				 	   Phase = new TabItem(tabFolder, SWT.NULL);	
-					FundamentalFrequency.setText("Fundamental Frequency");
+					
 					ChartResultWindow resultWindow = new ChartResultWindow("Chart");
 					Composite swtAwtComponent = new Composite(tabFolder, SWT.EMBEDDED);
 				    java.awt.Frame frame = SWT_AWT.new_Frame( swtAwtComponent );
 				resultWindow.open(cbf.getFundamentalFrequencyTable(),"Fundamental Frequency", "t", "f [Hz]" );
-					frame.add(resultWindow.GiveChartPanel());			
+					frame.add(resultWindow.GiveChartPanel());
+					FundamentalFrequency.setText("Fundamental Frequency");			
 					FundamentalFrequency.setControl(swtAwtComponent);
-					   swtAwtComponent.redraw();
+					 
 					tabFolder.setSelection(tabFolder.indexOf(FundamentalFrequency));
 					ChartResultWindow resultWindow1 = new ChartResultWindow("Chart");
 				resultWindow1.open(cbf.getFundamentalFrequencyAmplitudeTable(),"Amplitude", "t","A" );
@@ -327,9 +344,9 @@ public class MainWindow {
 			    Phase.setControl(swtAwtComponent3);
 			    Phase.setText("Phase");
 			    tabFolder.setSelection(tabFolder.indexOf(Phase));
-			 
-			    swtAwtComponent2.redraw();
-			    swtAwtComponent3.redraw();
+			  //  swtAwtComponent.redraw();
+			  //  swtAwtComponent2.redraw();
+			  //  swtAwtComponent3.redraw();
 				} catch (Exception exc) {
 					System.err.println(exc);
 					exc.printStackTrace();
@@ -446,7 +463,7 @@ public class MainWindow {
 					btnRecord.setEnabled(true);
 					btnStop.setEnabled(false);
 					btnSave.setEnabled(true);
-					btnPlay.setEnabled(true);
+					btnPlay.setEnabled(true); 
 					line.stop();
 					line.close();
 					//mntmOpen.notifyListeners(SWT.Selection, new Event());
