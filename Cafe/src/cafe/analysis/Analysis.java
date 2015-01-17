@@ -3,8 +3,8 @@ package cafe.analysis;
 public class Analysis {
 	
 //	private static final int PERIODCOUNT = 4;
-	private static final double OVERLAP = 0.5;
-	private static final int WINDOW = 1024;
+	private static final double OVERLAP = 0.25;
+	private static final int WINDOW = 2048;
 	private static final boolean DEBUG = false;
 		
 	private int window = 0;
@@ -26,6 +26,11 @@ public class Analysis {
     protected double resAmplitude[];
     
     private double phaseResult[];
+    private double phaseVelocity;
+    
+    protected double hnrTable[];
+    protected double hnrTabledB[];
+    
 		
 	public void init(int _n, int s){
 		n = _n;
@@ -500,18 +505,78 @@ public class Analysis {
 			sum=0;
 			for (i=0;i<temp.length;i++)
 				sum+=temp[i];
-			phaseResult[k++]=sum;
+			phaseResult[k++]=sum/(double)temp.length;
 			j+=(int)Math.round(WINDOW*OVERLAP+0.5);
 		}		
 		while (j+next<n);
+
+		phaseVelocity = 0;
+	    for (i=0; i<phaseResult.length-1; i++) { 
+	    	double delta = Math.abs(phaseResult[i]-phaseResult[i+1]);
+	    	if (delta>=Math.PI) 
+	    		delta-=Math.PI;
+	    	phaseVelocity += delta;
+	    }
+	    System.out.println("Ph vel = "+phaseVelocity);
 		
 		if (DEBUG)
 		    for (i=0; i<phaseResult.length; i++) { 
 				System.out.println(Integer.toString(i)+" "+Double.toString(phaseResult[i]));	    	
 		    }
-		
+//		    for (i=0; i<temp.length; i++) { 
+//				System.out.println(Integer.toString(i)+" "+Double.toString(temp[i]));	    	
+//		    }
+//		    phaseResult = getTheta(j,next);    
 	}
 
+
+	public void hnr() {
+		
+		int j=0,k=0,next=WINDOW;
+		double temp[][] = new double[11][(int)(res[0]*2.0)];
+		
+		hnrTabledB = new double[(int)Math.round((n/(WINDOW*OVERLAP))+0.5)];
+		hnrTable = new double[(int)Math.round((n/(WINDOW*OVERLAP))+0.5)];
+
+		
+		do {
+			
+			if (10*res[k]+j<data.length) {
+	    	for (int ii=0; ii<10; ii++)	{	
+	    		for (int i=0; i<res[k]; i++)
+	    			temp[ii][i]=data[ii*(int)res[k]+i+j];	
+	    	}
+	    	
+    		for (int i=0; i<res[k]; i++) {
+    			double sum=0;
+        		for (int ii=0; ii<10; ii++)
+        			sum += temp[ii][i];
+        		temp[10][i]= sum/10.0;        	
+    		}	
+    		
+    		double harmonic = 0;
+    		for (int i=0; i<res[k]; i++) 
+    			harmonic += temp[10][i]*temp[10][i];
+    		harmonic *= 10.0;
+
+    		double noise = 0;
+	    	for (int ii=0; ii<10; ii++)			
+	    		for (int i=0; i<res[k]; i++)
+	    			noise += (temp[10][i]-temp[ii][i])*(temp[10][i]-temp[ii][i]);
+    		
+			hnrTabledB[k]=10.0*Math.log10(harmonic/noise);
+			hnrTable[k++]=harmonic/noise;	    	
+			
+			}
+			
+			j+=(int)Math.round(WINDOW*OVERLAP+0.5);
+		}		
+		while (j+next<n);
+		
+		
+		
+	}
+	
 	
 //	public CoeffPack coeff() {
 //	

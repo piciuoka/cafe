@@ -8,5 +8,6 @@ public class FundamentalFrequencyCepstrum extends FundamentalFrequency {
 	
 	public void calculate() {
 		ffm();
+		hnr();
 	}
 }

@@ -26,4 +26,16 @@ public class FundamentalFrequency extends Analysis {
 		return temp;
 	}
 	
+	public double[] getHNRTable() {
+		double[] temp = new double[index_res];
+		temp = java.util.Arrays.copyOf(hnrTable, index_res-4);
+		return temp;
+	}
+
+	public double[] getHNRTabledB() {
+		double[] temp = new double[index_res];
+		temp = java.util.Arrays.copyOf(hnrTabledB, index_res-4);
+		return temp;
+	}
+	
 }

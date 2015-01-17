@@ -8,6 +8,7 @@ public class FundamentalFrequencyAutocorrelation extends FundamentalFrequency {
 	
 	public void calculate() {
 		afm();
+		hnr();
 	}
 
 }

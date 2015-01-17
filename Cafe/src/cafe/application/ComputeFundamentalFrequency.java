@@ -4,6 +4,7 @@ import cafe.analysis.AudioFeature;
 import cafe.analysis.FundamentalFrequency;
 import cafe.analysis.FundamentalFrequencyAutocorrelation;
 import cafe.analysis.FundamentalFrequencyCepstrum;
+import cafe.analysis.LinearDiscriminantAnalysis;
 import cafe.analysis.WindowFunction;
 
 public class ComputeFundamentalFrequency {
@@ -17,9 +18,9 @@ public class ComputeFundamentalFrequency {
 		bps=s;
 		n=np;
 		if(autocorr){
-		ff = new FundamentalFrequencyAutocorrelation(np, s);
+			ff = new FundamentalFrequencyAutocorrelation(np, s);
 		} else{
-	ff = new FundamentalFrequencyCepstrum(np, s);	
+			ff = new FundamentalFrequencyCepstrum(np, s);	
 		}
 		switch(f){
 		case 'h': ff.setWindow(WindowFunction.HANNING); break;
@@ -44,9 +45,22 @@ public class ComputeFundamentalFrequency {
 		System.out.println("Jitter (relative)  : "+Double.toString(audioFeature.jitterRelative()));
 		System.out.println("Shimmer (absolute) : "+Double.toString(audioFeature.shimmerAbsolute()));
 		System.out.println("Shimmer (relative) : "+Double.toString(audioFeature.shimmerRelative()));
+		System.out.println("HNR                : "+Double.toString(audioFeature.harmonicsToNoise()));
+	
+		LinearDiscriminantAnalysis lda = new LinearDiscriminantAnalysis();
+		double [][] predata = new double[3][1];
+		predata[0][0]= audioFeature.jitterRelative();
+		predata[1][0]= audioFeature.shimmerRelative();
+		predata[2][0]= audioFeature.harmonicsToNoise();
 		
-//		for(int i=0;i<fft.getBasIndex();i++) 
-//			System.out.println("i : "+Double.toString(fft.getBas(i)));			
+		int classification = (int) lda.classification(predata);
+		
+		System.out.print(" Classification : "+classification+" == ");
+
+		if (classification == 1)
+			System.out.println(" HEALTHY ");
+		else
+			System.out.println(" PATHOLOGICAL ");
 					
 	}
 		
@@ -56,6 +70,10 @@ public class ComputeFundamentalFrequency {
 
 	public double[] getFundamentalFrequencyAmplitudeTable() {
 		return ff.getFundamentalFrequencyAmplitudeTable();
+	}
+
+	public double[] getHNRTabledB() {
+		return ff.getHNRTabledB();
 	}
 	
 }

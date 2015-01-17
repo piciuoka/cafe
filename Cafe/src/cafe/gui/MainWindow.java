@@ -310,8 +310,11 @@ public class MainWindow {
 					wavFile.close();
 
 					cbf.transform();
+					
 // time consuming
-					cph.transform();
+//					cph.transform();
+					
+					
 					if(FundamentalFrequency==null)
 					 FundamentalFrequency = new TabItem(tabFolder, SWT.NULL);
 					if(Amplitude==null)
@@ -337,12 +340,13 @@ public class MainWindow {
 			    Amplitude.setText("Amplitude");
 			    tabFolder.setSelection(tabFolder.indexOf(Amplitude));
 					ChartResultWindow resultWindow2 = new ChartResultWindow("Chart");
-			   	resultWindow2.open(cph.getPhaseTable(),"Phase Spectrum", "f","Theta [rad]" );
+			   	resultWindow2.open(cbf.getHNRTabledB(),"Harmonics to Noise", "t","dB" );
+//			   	resultWindow2.open(cph.getPhaseTable(),"Phase Spectrum", "f","Theta [rad]" );
 				Composite swtAwtComponent3 = new Composite(tabFolder, SWT.EMBEDDED);
 			    java.awt.Frame frame3 = SWT_AWT.new_Frame( swtAwtComponent3 );
 			    frame3.add(resultWindow2.GiveChartPanel());
 			    Phase.setControl(swtAwtComponent3);
-			    Phase.setText("Phase");
+			    Phase.setText("HNR");
 			    tabFolder.setSelection(tabFolder.indexOf(Phase));
 			  //  swtAwtComponent.redraw();
 			  //  swtAwtComponent2.redraw();
