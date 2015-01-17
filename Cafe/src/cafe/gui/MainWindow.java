@@ -32,6 +32,7 @@ import javax.swing.JTabbedPane;
 import org.eclipse.jface.resource.FontDescriptor;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Canvas;
+import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
@@ -242,8 +243,10 @@ public class MainWindow {
 		        Button gButton = new Button(composite, SWT.RADIO);
 		        gButton.setText("GAUSS");
 		        gButton.setLayoutData(new RowData(100,25));
-		        Button aButton = new Button(composite, SWT.CHECK);
-		        aButton.setText("Set autocorrelation");
+		        Combo aButton = new Combo(composite, SWT.READ_ONLY);
+		        String it [] ={"Autocorrelation","Cupstrum"};
+		        aButton.setItems(it);
+		        aButton.setText("Cupstrum");
 		        aButton.setLayoutData(new RowData(400,25));
 		        
 		       Button okButton=new Button(composite,SWT.NORMAL);
@@ -261,7 +264,7 @@ public class MainWindow {
 		    	   windowType='b';
 		       if(gButton.getSelection())
 		    	   windowType='g';
-			   if(aButton.getSelection()){
+			   if(aButton.getSelectionIndex()==0){
 				   autocorr=true;
 			   }
 			     else{
