@@ -51,6 +51,7 @@ import org.eclipse.swt.events.PaintEvent;
 import org.eclipse.swt.events.PaintListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
@@ -66,6 +67,9 @@ import cafe.application.ComputeFundamentalFrequency;
 import cafe.application.ComputePhaseSpectrum;
 import cafe.audio.DrawWaveform;
 import cafe.audio.WavFile;
+
+import org.eclipse.swt.widgets.Text;
+import org.eclipse.wb.swt.SWTResourceManager;
 
 public class MainWindow {
 	private TargetDataLine line;
@@ -83,6 +87,11 @@ public class MainWindow {
 	private TabItem Phase;
     private char windowType;
     private boolean autocorr;
+    private Text txtFile;
+    private Text txtJitter;
+    private Text txtClassification;
+    private Text txtShimmer;
+    private Text txtHnr;
 	/**
 	 * Open the window.
 	 */
@@ -114,6 +123,7 @@ public class MainWindow {
 
 // needed here		
  		shell = new Shell(display, SWT.SHELL_TRIM | SWT.DOUBLE_BUFFERED);
+ 		shell.setMinimumSize(new Point(120, 50));
  		 tabFolder = new TabFolder(shell, SWT.BORDER);
  	      TabItem tabItem = new TabItem(tabFolder, SWT.NULL);
  	      tabItem.setText("Sound graph");
@@ -127,6 +137,31 @@ public class MainWindow {
 		shell.setSize(800, 600);
 		shell.setText("CAFE Application");
 
+		final Composite composite = new Composite(shell, SWT.NONE);
+		composite.setBounds(3, 499, 800, 46);
+		
+		txtFile = new Text(composite, SWT.BORDER);
+		txtFile.setBounds(0, 0, 575, 21);
+		txtFile.setText("file");
+		
+		txtJitter = new Text(composite, SWT.BORDER);
+		txtJitter.setBounds(0, 25, 195, 21);
+		txtJitter.setText("jitter");
+		
+		txtShimmer = new Text(composite, SWT.BORDER);
+		txtShimmer.setBounds(201, 25, 195, 21);
+		txtShimmer.setText("shimmer");
+		
+		txtHnr = new Text(composite, SWT.BORDER);
+		txtHnr.setBounds(400, 25, 175, 21);
+		txtHnr.setText("hnr");
+
+		txtClassification = new Text(composite, SWT.BORDER);
+		txtClassification.setFont(SWTResourceManager.getFont("Segoe UI", 19, SWT.NORMAL));
+		txtClassification.setBounds(581, 0, 203, 46);
+		txtClassification.setText("classification");
+		
+		
         shell.addListener (SWT.Paint, new Listener () 
         {
             public void handleEvent (Event e) {
@@ -148,6 +183,7 @@ public class MainWindow {
 					dw.redraw(width, height);
 					drawingLabel.setLocation(0, 60);
 					drawingLabel.setImage(dw.getImage());
+					composite.setLocation(10, height+10);
 				}
 			}
 		});
@@ -172,7 +208,8 @@ public class MainWindow {
 		        String[] filterExt = { "*.wav", "*.*" };
 		        fd.setFilterExtensions(filterExt);
 		        fileName = fd.open();
-		        System.out.println(fileName);
+				txtFile.setText(fileName);
+		        System.out.println(fileName);		      
 		        if (fileName != null) {
 
 		    		int width = shell.getSize().x;
@@ -187,7 +224,6 @@ public class MainWindow {
 		    		image = dw.getImage();
 		    		shell.redraw();
 */
-    				    				    		
 		    		drawingLabel.setSize(width,height);
 		    		tabFolder.setSize(width,height);
 		    		drawingLabel.setLocation(0, 40);
@@ -244,9 +280,9 @@ public class MainWindow {
 		        gButton.setText("GAUSS");
 		        gButton.setLayoutData(new RowData(100,25));
 		        final Combo aButton = new Combo(composite, SWT.READ_ONLY);
-		        String it [] ={"Autocorrelation","Cupstrum"};
+		        String it [] ={"Autocorrelation","Cepstrum"};
 		        aButton.setItems(it);
-		        aButton.setText("Cupstrum");
+		        aButton.setText("Cepstrum");
 		        aButton.setLayoutData(new RowData(400,25));
 		        
 		       Button okButton=new Button(composite,SWT.NORMAL);
@@ -313,6 +349,21 @@ public class MainWindow {
 					wavFile.close();
 
 					cbf.transform();
+					txtJitter.setText(" Jitter : " + Double.toString(cbf.getJitter()));
+					txtShimmer.setText(" Shimmer : " + Double.toString(cbf.getShimmer()));
+					txtHnr.setText(" HNR : " + Double.toString(cbf.getHNR()));
+					
+					if (cbf.getClassification() == 1) {
+						txtClassification.setText(" HEALTHY ");
+						//txtClassification.setForeground(new Color(shell.getDisplay(), 0, 128, 0));
+						txtClassification.setBackground(new Color(shell.getDisplay(), 0, 200, 0));
+					}
+					else {
+						txtClassification.setText(" PATHOLOGICAL ");
+						//txtClassification.setForeground(new Color(shell.getDisplay(), 128, 0, 0));						
+						txtClassification.setBackground(new Color(shell.getDisplay(), 200, 0, 0));
+					}
+						
 					
 // time consuming
 //					cph.transform();
@@ -548,6 +599,7 @@ public class MainWindow {
 		
 		MenuItem mntmAbout = new MenuItem(menu, SWT.NONE);
 		mntmAbout.setText("&About");
+				
 		mntmAbout.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {

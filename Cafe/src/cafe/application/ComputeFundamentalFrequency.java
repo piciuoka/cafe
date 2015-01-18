@@ -12,6 +12,8 @@ public class ComputeFundamentalFrequency {
 	private FundamentalFrequency ff;
     private int bps;
     private int n;
+    private int classification;
+    private double jitter, shimmer, hnr;
 	
 	public ComputeFundamentalFrequency(int np, int s, char f,boolean autocorr) {
 		
@@ -35,25 +37,29 @@ public class ComputeFundamentalFrequency {
 		ff.copy(x);
 	}
 	
-	public void transform() {
+	public int transform() {
 		
 		ff.calculate();
 						
 		AudioFeature audioFeature = new AudioFeature(ff);
+		
+		jitter = audioFeature.jitterRelative();
+		shimmer = audioFeature.shimmerRelative();
+		hnr = audioFeature.harmonicsToNoise();
 
 		System.out.println("Jitter (absolute)  : "+Double.toString(audioFeature.jitterAbsolute()));
-		System.out.println("Jitter (relative)  : "+Double.toString(audioFeature.jitterRelative()));
+		System.out.println("Jitter (relative)  : "+Double.toString(jitter));
 		System.out.println("Shimmer (absolute) : "+Double.toString(audioFeature.shimmerAbsolute()));
-		System.out.println("Shimmer (relative) : "+Double.toString(audioFeature.shimmerRelative()));
-		System.out.println("HNR                : "+Double.toString(audioFeature.harmonicsToNoise()));
+		System.out.println("Shimmer (relative) : "+Double.toString(shimmer));
+		System.out.println("HNR                : "+Double.toString(hnr));
 	
 		LinearDiscriminantAnalysis lda = new LinearDiscriminantAnalysis();
 		double [][] predata = new double[3][1];
-		predata[0][0]= audioFeature.jitterRelative();
-		predata[1][0]= audioFeature.shimmerRelative();
-		predata[2][0]= audioFeature.harmonicsToNoise();
+		predata[0][0] = jitter;
+		predata[1][0] = shimmer;
+		predata[2][0] = hnr;
 		
-		int classification = (int) lda.classification(predata);
+		classification = (int) lda.classification(predata);
 		
 		System.out.print(" Classification : "+classification+" == ");
 
@@ -61,6 +67,8 @@ public class ComputeFundamentalFrequency {
 			System.out.println(" HEALTHY ");
 		else
 			System.out.println(" PATHOLOGICAL ");
+		
+		return classification;
 					
 	}
 		
@@ -74,6 +82,22 @@ public class ComputeFundamentalFrequency {
 
 	public double[] getHNRTabledB() {
 		return ff.getHNRTabledB();
+	}
+	
+	public int getClassification() {
+		return classification;
+	}
+
+	public double getJitter() {
+		return jitter;
+	}
+
+	public double getShimmer() {
+		return shimmer;
+	}
+
+	public double getHNR() {
+		return hnr;
 	}
 	
 }
